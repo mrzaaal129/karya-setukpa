@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { PrismaClient, UserRole } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
-import prisma from '../config/database';
+import prisma from '../config/database.js';
 
 export const getAdvisors = async (req: Request, res: Response) => {
     try {

@@ -1,9 +1,9 @@
 import express from 'express';
-import { getAdvisors, createAdvisor, updateAdvisor, deleteAdvisor, getAssignedStudents } from '../controllers/advisorController';
+import { getAdvisors, createAdvisor, updateAdvisor, deleteAdvisor, getAssignedStudents } from '../controllers/advisorController.js';
 import { authenticate, authorize } from '../middleware/auth';
 import { UserRole } from '@prisma/client';
 
-import { importAdvisors, downloadAdvisorTemplate } from '../controllers/advisorImportController';
+import { importAdvisors, downloadAdvisorTemplate } from '../controllers/advisorImportController.js';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
