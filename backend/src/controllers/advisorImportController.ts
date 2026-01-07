@@ -59,6 +59,7 @@ export const importAdvisors = async (req: Request, res: Response) => {
                         // Create new advisor
                         await prisma.user.create({
                             data: {
+                                id: crypto.randomUUID(),
                                 nosis: row.nrp, // Use NRP as NOSIS
                                 nrp: row.nrp,
                                 name: row.name,
@@ -67,6 +68,7 @@ export const importAdvisors = async (req: Request, res: Response) => {
                                 email: row.email || undefined,
                                 password: hashedPassword,
                                 role: UserRole.PEMBIMBING,
+                                updatedAt: new Date(),
                             }
                         });
                     }

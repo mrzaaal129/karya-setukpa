@@ -177,7 +177,12 @@ export const validateAssignment = async (req: Request, res: Response): Promise<v
                 }
             }
         });
-        // ... 
+
+        if (!advisor) {
+            res.status(404).json({ error: 'Advisor not found' });
+            return;
+        }
+
         if (advisor.role !== UserRole.PEMBIMBING) {
             res.status(400).json({ error: 'User is not an advisor' });
             return;
@@ -279,7 +284,12 @@ export const updateAdvisorCapacity = async (req: Request, res: Response): Promis
                 }
             }
         });
-        // ...
+
+        if (!advisor) {
+            res.status(404).json({ error: 'Advisor not found' });
+            return;
+        }
+
         const currentStudents = advisor.other_User.length;
 
         if (maxStudents < currentStudents) {

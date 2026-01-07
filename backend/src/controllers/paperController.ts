@@ -138,7 +138,7 @@ export const getPaperById = async (req: AuthRequest, res: Response): Promise<voi
 
                     if (!exists) {
                         // New Chapter Found! Append it.
-                        console.log(`Sync: Adding new chapter "${masterChapter.title}" to Paper ${paper.id}`);
+                        console.log(`Sync: Adding new chapter "${masterChapter.title}" to Paper ${paper!.id}`);
                         currentStructure.push({
                             ...masterChapter,
                             content: '', // New items have empty content
