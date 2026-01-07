@@ -22,6 +22,11 @@ export const authenticate = (
         const token = authHeader.substring(7);
         const decoded = verifyToken(token);
 
+        if (!decoded) {
+            res.status(401).json({ error: 'Invalid or expired token' });
+            return;
+        }
+
         req.user = decoded;
 
         // Update Last Active (Fire & Forget)
@@ -30,7 +35,6 @@ export const authenticate = (
             where: { id: decoded.userId },
             data: { updatedAt: new Date() }
         }).catch(err => {
-            // console.error("Failed to update activity:", err);
             // Silent fail is fine for activity tracking
         });
 

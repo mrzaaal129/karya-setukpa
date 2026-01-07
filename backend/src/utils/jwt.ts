@@ -8,11 +8,28 @@ export interface JWTPayload {
 }
 
 export const generateToken = (payload: JWTPayload): string => {
-    return jwt.sign(payload, config.jwt.secret, {
-        expiresIn: config.jwt.expiresIn,
+    const secret = config.jwt.secret;
+    if (!secret) {
+        throw new Error('JWT_SECRET is not defined');
+    }
+
+    // Convert expiresIn to seconds if needed, or use default
+    const expiresInValue = config.jwt.expiresIn || '7d';
+
+    return jwt.sign(payload, secret, {
+        expiresIn: expiresInValue as jwt.SignOptions['expiresIn'],
     });
 };
 
-export const verifyToken = (token: string): JWTPayload => {
-    return jwt.verify(token, config.jwt.secret) as JWTPayload;
+export const verifyToken = (token: string): JWTPayload | null => {
+    try {
+        const secret = config.jwt.secret;
+        if (!secret) {
+            throw new Error('JWT_SECRET is not defined');
+        }
+        const decoded = jwt.verify(token, secret);
+        return decoded as JWTPayload;
+    } catch (error) {
+        return null;
+    }
 };

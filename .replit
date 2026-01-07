@@ -1,0 +1,16 @@
+run = "cd backend && npm start"
+build = "cd frontend && npm install && npm run build && cd .. && mkdir -p backend/public && cp -r frontend/dist/* backend/public/ && cd backend && npm install && npx prisma generate && npm run build"
+
+[deployment]
+run = ["sh", "-c", "cd backend && npm start"]
+build = ["sh", "-c", "cd frontend && npm install && npm run build && cd .. && mkdir -p backend/public && cp -r frontend/dist/* backend/public/ && cd backend && npm install && npx prisma generate && npm run build"]
+
+[env]
+NODE_ENV = "production"
+
+[nix]
+channel = "stable-24_05"
+
+[[ports]]
+localPort = 3001
+externalPort = 80

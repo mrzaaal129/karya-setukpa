@@ -87,12 +87,15 @@ export const importFromWord = async (req: AuthRequest, res: Response): Promise<v
         // Create template in database
         const template = await prisma.paperTemplate.create({
             data: {
+                id: crypto.randomUUID(),
                 name: templateData.name,
                 description: templateData.description,
                 settings: templateData.settings as any,
                 pages: templateData.pages as any,
+                updatedAt: new Date(),
             },
         });
+
 
         // Clean up uploaded file
         await fs.unlink(file.path);
