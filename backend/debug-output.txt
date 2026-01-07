@@ -1,0 +1,9 @@
+Fetching all assignments...
+
+--- All Assignments in Database ---
+TITLE: PRODUK KARYA AKHIR PERORANGAN | DEADLINE: 2025-12-31T12:44:00.000Z | STATUS: SCHEDULED
+TITLE: Karya Tulis Ilmiah | DEADLINE: 2025-12-22T05:56:00.000Z | STATUS: SCHEDULED
+
+--- Analysis ---
+Future Assignments (visible in Agenda): 1
+Assignments with NO Deadline (invisible): 0

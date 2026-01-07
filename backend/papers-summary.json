@@ -1,0 +1,22 @@
+[
+  {
+    "paperId": "d7526887-d804-4963-b0e8-4db067b5feb9",
+    "paperTitle": "Karya Tulis Ilmiah",
+    "ownerName": "Mochamad Rizal Sidik Pratama",
+    "ownerNosis": "0070574",
+    "assignmentTitle": "Karya Tulis Ilmiah",
+    "totalChapters": 7,
+    "approvedChapters": 7,
+    "hasContent": true
+  },
+  {
+    "paperId": "1e9291f2-0826-47bf-9653-661b67a057dd",
+    "paperTitle": "Karya Tulis Ilmiah",
+    "ownerName": "Tiara Farsya Chairunnisa",
+    "ownerNosis": "0070575",
+    "assignmentTitle": "Karya Tulis Ilmiah",
+    "totalChapters": 7,
+    "approvedChapters": 0,
+    "hasContent": false
+  }
+]

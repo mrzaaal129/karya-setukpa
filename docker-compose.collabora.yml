@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  collabora:
+    image: collabora/code:latest
+    container_name: collabora-online
+    ports:
+      - "9980:9980"
+    environment:
+      - domain=".*"
+      - username=admin
+      - password=admin
+      - extra_params=--o:ssl.enable=false --o:ssl.termination=true --o:wopi.host=192.168.1.7 --o:wopi.alias_groups.mode=none
+    restart: unless-stopped
+    cap_add:
+      - MKNOD
+    networks:
+      - karya-network
+
+networks:
+  karya-network:
+    driver: bridge

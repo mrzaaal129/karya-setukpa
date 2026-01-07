@@ -1,0 +1,53 @@
+{
+  "name": "setukpa-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:all": "start cmd /k \"cd backend && npm run dev\" && npm run dev"
+  },
+  "dependencies": {
+    "@onlyoffice/document-editor-react": "^2.1.1",
+    "@tinymce/tinymce-react": "^6.3.0",
+    "@tiptap/extension-color": "^3.13.0",
+    "@tiptap/extension-font-family": "^3.13.0",
+    "@tiptap/extension-highlight": "^3.13.0",
+    "@tiptap/extension-image": "^3.13.0",
+    "@tiptap/extension-table": "^3.13.0",
+    "@tiptap/extension-table-cell": "^3.13.0",
+    "@tiptap/extension-table-header": "^3.13.0",
+    "@tiptap/extension-table-row": "^3.13.0",
+    "@tiptap/extension-text-align": "^3.13.0",
+    "@tiptap/extension-text-style": "^3.13.0",
+    "@tiptap/extension-underline": "^3.13.0",
+    "@tiptap/react": "^3.13.0",
+    "@tiptap/starter-kit": "^3.13.0",
+    "@types/uuid": "^10.0.0",
+    "axios": "^1.7.9",
+    "date-fns": "^4.1.0",
+    "framer-motion": "^12.23.26",
+    "html2pdf.js": "^0.12.1",
+    "lucide-react": "^0.555.0",
+    "mammoth": "^1.11.0",
+    "react": "^19.2.0",
+    "react-calendar": "^6.0.0",
+    "react-dom": "^19.2.0",
+    "react-hot-toast": "^2.6.0",
+    "react-router-dom": "^7.9.6",
+    "react-to-print": "^3.2.0",
+    "recharts": "^3.6.0",
+    "tinymce": "^8.3.0",
+    "uuid": "^13.0.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
+  }
+}

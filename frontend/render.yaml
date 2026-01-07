@@ -1,0 +1,15 @@
+# Render.com Static Site Configuration for Frontend
+
+# Build settings
+build:
+  command: npm install && npm run build
+  
+# Publish directory (where built files are)
+publish: dist
+
+# Routes configuration for SPA
+routes:
+  - src: /assets/*
+    dest: /assets/:splat
+  - src: /*
+    dest: /index.html

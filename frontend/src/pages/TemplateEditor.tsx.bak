@@ -1,0 +1,355 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useTemplates } from '../contexts/TemplateContext';
+import { PaperStructure, PaperTemplate, TemplatePage, TemplatePageType, PageSettings } from '../types';
+import { PlusCircleIcon, TrashIcon, SaveIcon, ArrowUpIcon, ArrowDownIcon } from '../components/icons';
+import TemplatePageEditor from '../components/TemplatePageEditor';
+import PageSetupSidebar from '../components/PageSetupSidebar';
+import InlineWordImport from '../components/InlineWordImport';
+
+// --- Sub-components for editor ---
+
+const createNewSection = (title: string = ''): PaperStructure => ({
+    id: `sec_${Date.now()}_${Math.random()}`,
+    title,
+    minWords: 0,
+    wordCount: 0,
+    subsections: []
+});
+
+interface StructureNodeProps {
+    section: PaperStructure;
+    path: number[];
+    onUpdate: (path: number[], newSection: PaperStructure) => void;
+    onDelete: (path: number[]) => void;
+    onAddChild: (path: number[]) => void;
+}
+
+const StructureNode: React.FC<StructureNodeProps> = ({ section, path, onUpdate, onDelete, onAddChild }) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        onUpdate(path, { ...section, [name]: name === 'minWords' ? parseInt(value) || 0 : value });
+    };
+
+    return (
+        <div className="ml-6 pl-4 border-l-2 border-gray-200 py-2">
+            <div className="flex items-center gap-2">
+                <input
+                    type="text"
+                    name="title"
+                    value={section.title}
+                    onChange={handleInputChange}
+                    placeholder="Judul Bab / Sub-bab"
+                    className="flex-grow px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm"
+                />
+                <input
+                    type="number"
+                    name="minWords"
+                    value={section.minWords}
+                    onChange={handleInputChange}
+                    placeholder="Min. Kata"
+                    className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm"
+                />
+                <button type="button" onClick={() => onAddChild(path)} className="p-2 text-blue-600 hover:bg-blue-100 rounded-full" title="Tambah Sub-bab">
+                    <PlusCircleIcon className="w-5 h-5" />
+                </button>
+                <button type="button" onClick={() => onDelete(path)} className="p-2 text-red-600 hover:bg-red-100 rounded-full" title="Hapus Bab">
+                    <TrashIcon className="w-5 h-5" />
+                </button>
+            </div>
+            {section.subsections && section.subsections.map((sub, index) => (
+                <StructureNode
+                    key={sub.id}
+                    section={sub}
+                    path={[...path, index]}
+                    onUpdate={onUpdate}
+                    onDelete={onDelete}
+                    onAddChild={onAddChild}
+                />
+            ))}
+        </div>
+    );
+};
+
+// --- Main Editor Component ---
+
+const TemplateEditor: React.FC = () => {
+    const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
+    const { getTemplateById, addTemplate, updateTemplate } = useTemplates();
+    const isNew = id === 'new' || id === undefined;
+
+    const defaultSettings: PageSettings = {
+        paperSize: 'A4',
+        margins: { top: 2, bottom: 2, left: 2.5, right: 2.5 },
+        font: { family: 'Times New Roman', size: 12, lineHeight: 1.5 },
+        paragraph: { indent: 1.27, spacing: 1.5 },
+    };
+
+    const [template, setTemplate] = useState<Omit<PaperTemplate, 'id'>>({ name: '', description: '', pages: [], settings: defaultSettings });
+    const [isAddPageMenuOpen, setIsAddPageMenuOpen] = useState(false);
+
+    useEffect(() => {
+        if (!isNew && id) {
+            const existingTemplate = getTemplateById(id);
+            if (existingTemplate) {
+                setTemplate(existingTemplate);
+            } else {
+                alert('Template tidak ditemukan!');
+                navigate('/templates');
+            }
+        } else {
+            setTemplate({ name: '', description: '', pages: [], settings: defaultSettings });
+        }
+    }, [id, isNew, navigate, getTemplateById]);
+
+    const handleTemplateNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setTemplate(prev => ({ ...prev, name: e.target.value }));
+    };
+
+    const handlePageUpdate = (pageIndex: number, updatedPage: TemplatePage) => {
+        setTemplate(prev => {
+            const newPages = [...prev.pages];
+            newPages[pageIndex] = updatedPage;
+            return { ...prev, pages: newPages };
+        });
+    };
+
+    const addPage = (type: TemplatePageType) => {
+        const pageTitles: Record<TemplatePageType, string> = {
+            'TITLE': 'Halaman Judul',
+            'STATEMENT': 'Surat Pernyataan',
+            'APPROVAL': 'Lembar Persetujuan',
+            'FOREWORD': 'Kata Pengantar',
+            'TOC': 'Daftar Isi',
+            'LIST_OF_TABLES': 'Daftar Tabel',
+            'LIST_OF_FIGURES': 'Daftar Gambar',
+            'CONTENT': 'Isi Makalah',
+            'REFERENCES': 'Daftar Pustaka',
+            'APPENDIX': 'Lampiran'
+        };
+
+        setTemplate(prev => {
+            const newPage: TemplatePage = {
+                id: `page_${Date.now()}`,
+                type,
+                name: pageTitles[type],
+                order: prev.pages.length,
+                content: type !== 'CONTENT' && type !== 'TOC' ? `<h1>${pageTitles[type]}</h1><p>...</p>` : undefined,
+                structure: type === 'CONTENT' ? [createNewSection('BAB I: PENDAHULUAN')] : undefined,
+                numbering: { type: 'none', position: 'none' },
+            };
+            return { ...prev, pages: [...prev.pages, newPage] };
+        });
+        setIsAddPageMenuOpen(false);
+    };
+
+    const deletePage = (pageIndex: number) => {
+        if (window.confirm('Yakin ingin menghapus halaman ini dari template?')) {
+            setTemplate(prev => ({ ...prev, pages: prev.pages.filter((_, i) => i !== pageIndex) }));
+        }
+    };
+
+    const movePage = (index: number, direction: 'up' | 'down') => {
+        setTemplate(prev => {
+            const newPages = [...prev.pages];
+            const [page] = newPages.splice(index, 1);
+            const newIndex = direction === 'up' ? index - 1 : index + 1;
+            newPages.splice(newIndex, 0, page);
+            return { ...prev, pages: newPages };
+        });
+    };
+
+    const handleSettingsChange = (newSettings: PageSettings) => {
+        setTemplate(prev => ({ ...prev, settings: newSettings }));
+    };
+
+    const handleSave = () => {
+        if (!template.name.trim()) {
+            alert('Nama template tidak boleh kosong.');
+            return;
+        }
+        if (isNew) {
+            addTemplate(template);
+        } else if (id) {
+            updateTemplate({ ...template, id: id });
+        }
+        alert('Template berhasil disimpan!');
+        navigate('/templates');
+    };
+
+    const handleStructureUpdate = useCallback((pageIndex: number, path: number[], newSection: PaperStructure) => {
+        setTemplate(currentTemplate => {
+            const newPages = JSON.parse(JSON.stringify(currentTemplate.pages));
+            let target = newPages[pageIndex].structure;
+            for (let i = 0; i < path.length - 1; i++) {
+                target = target[path[i]].subsections;
+            }
+            target[path[path.length - 1]] = newSection;
+            return { ...currentTemplate, pages: newPages };
+        });
+    }, []);
+
+    const handleStructureAdd = useCallback((pageIndex: number, path: number[]) => {
+        setTemplate(currentTemplate => {
+            const newPages = JSON.parse(JSON.stringify(currentTemplate.pages));
+            let structure = newPages[pageIndex].structure;
+            if (path.length === 0) {
+                structure.push(createNewSection(`BAB ${structure.length + 1}`));
+            } else {
+                let target = structure;
+                for (let i = 0; i < path.length; i++) {
+                    if (!target[path[i]].subsections) target[path[i]].subsections = [];
+                    target = target[path[i]].subsections;
+                }
+                target.push(createNewSection());
+            }
+            return { ...currentTemplate, pages: newPages };
+        });
+    }, []);
+
+    const handleStructureDelete = useCallback((pageIndex: number, path: number[]) => {
+        setTemplate(currentTemplate => {
+            const newPages = JSON.parse(JSON.stringify(currentTemplate.pages));
+            let target = newPages[pageIndex].structure;
+            for (let i = 0; i < path.length - 1; i++) {
+                target = target[path[i]].subsections;
+            }
+            target.splice(path[path.length - 1], 1);
+            return { ...currentTemplate, pages: newPages };
+        });
+    }, []);
+
+    const handleWordImport = (importedTemplate: any) => {
+        // Merge imported template data into current template
+        setTemplate(prev => ({
+            ...prev,
+            name: prev.name || importedTemplate.name,
+            description: prev.description || importedTemplate.description,
+            pages: [...prev.pages, ...importedTemplate.pages],
+            settings: importedTemplate.settings || prev.settings
+        }));
+        alert('Template Word berhasil diimport! Anda dapat mengedit dan menyempurnakannya.');
+    };
+
+    console.log('TemplateEditor rendering, about to render InlineWordImport');
+
+    return (
+        <div className="flex gap-4">
+            <main className="flex-grow space-y-6">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-800">{isNew ? 'Buat Template Baru' : 'Edit Template Makalah'}</h1>
+                        <p className="mt-1 text-gray-600">Definisikan halaman, struktur, dan format untuk template ini.</p>
+                    </div>
+                    <div className="flex gap-3 relative">
+                        <button
+                            onClick={() => alert('Import button clicked!')}
+                            className="px-4 py-2.5 font-semibold text-blue-600 bg-white border-2 border-blue-600 rounded-lg hover:bg-blue-50 shadow-sm flex items-center space-x-2"
+                        >
+                            <span>🔼</span>
+                            <span>Import dari Word</span>
+                        </button>
+                        <button onClick={handleSave} className="px-6 py-3 font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-md flex items-center space-x-2">
+                            <SaveIcon className="w-5 h-5" /><span>Simpan Template</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow-lg border">
+                    <label htmlFor="templateName" className="block text-sm font-medium text-gray-700 mb-1">Nama Template</label>
+                    <input
+                        type="text"
+                        id="templateName"
+                        value={template.name}
+                        onChange={handleTemplateNameChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Contoh: Template Makalah Standar 2024"
+                    />
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow-lg border">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-xl font-bold text-gray-800">Halaman Template</h3>
+                        <div className="relative inline-block text-left">
+                            <button
+                                type="button"
+                                onClick={() => setIsAddPageMenuOpen(!isAddPageMenuOpen)}
+                                className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            >
+                                Tambah Halaman Baru
+                                <svg className="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                            </button>
+                            {isAddPageMenuOpen && (
+                                <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                                    <div className="py-1">
+                                        <a href="#" onClick={(e) => { e.preventDefault(); addPage('TITLE'); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Halaman Judul</a>
+                                        <a href="#" onClick={(e) => { e.preventDefault(); addPage('STATEMENT'); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Surat Pernyataan</a>
+                                        <a href="#" onClick={(e) => { e.preventDefault(); addPage('FOREWORD'); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Kata Pengantar</a>
+                                        <a href="#" onClick={(e) => { e.preventDefault(); addPage('TOC'); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Daftar Isi</a>
+                                        <a href="#" onClick={(e) => { e.preventDefault(); addPage('CONTENT'); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Isi Makalah (Bab)</a>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        {template.pages.map((page, index) => (
+                            <div key={page.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h4 className="font-bold text-gray-700">{index + 1}. {page.name} ({page.type})</h4>
+                                    <div className="flex items-center gap-1">
+                                        <button onClick={() => movePage(index, 'up')} disabled={index === 0} className="p-1.5 text-gray-600 hover:bg-gray-200 rounded-full disabled:opacity-30 disabled:cursor-not-allowed"><ArrowUpIcon className="w-4 h-4" /></button>
+                                        <button onClick={() => movePage(index, 'down')} disabled={index === template.pages.length - 1} className="p-1.5 text-gray-600 hover:bg-gray-200 rounded-full disabled:opacity-30 disabled:cursor-not-allowed"><ArrowDownIcon className="w-4 h-4" /></button>
+                                        <button onClick={() => deletePage(index)} className="p-1.5 text-red-600 hover:bg-red-100 rounded-full"><TrashIcon className="w-4 h-4" /></button>
+                                    </div>
+                                </div>
+
+                                {(page.type === 'TITLE' || page.type === 'STATEMENT' || page.type === 'FOREWORD') && (
+                                    <div className="editor-canvas">
+                                        <label className="text-sm font-medium text-gray-600 mb-2 block">
+                                            Konten Default (Gunakan placeholder <code>{'{{NAMA_SISWA}}'}</code> dan <code>{'{{NOSIS}}'}</code>)
+                                        </label>
+                                        <TemplatePageEditor
+                                            content={page.content || ''}
+                                            onChange={(newContent) => handlePageUpdate(index, { ...page, content: newContent })}
+                                            settings={template.settings}
+                                        />
+                                    </div>
+                                )}
+
+                                {page.type === 'TOC' && <p className="text-sm text-gray-500 italic p-4 bg-blue-50 border border-blue-200 rounded-lg">Daftar isi akan dibuat secara otomatis berdasarkan halaman "Isi Makalah".</p>}
+
+                                {page.type === 'CONTENT' && (
+                                    <div className="space-y-2 p-4 bg-white border rounded-lg">
+                                        <h5 className="font-semibold text-gray-800 mb-2">Struktur Bab</h5>
+                                        {page.structure?.map((section, secIndex) => (
+                                            <StructureNode
+                                                key={section.id}
+                                                section={section}
+                                                path={[secIndex]}
+                                                onUpdate={(p, s) => handleStructureUpdate(index, p, s)}
+                                                onDelete={(p) => handleStructureDelete(index, p)}
+                                                onAddChild={(p) => handleStructureAdd(index, p)}
+                                            />
+                                        ))}
+                                        <button onClick={() => handleStructureAdd(index, [])} className="mt-2 px-3 py-1.5 text-sm font-semibold text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 flex items-center space-x-2">
+                                            <PlusCircleIcon className="h-4 w-4" /><span>Tambah Bab</span>
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+            </main>
+            <PageSetupSidebar settings={template.settings} onSettingsChange={handleSettingsChange} />
+        </div>
+    );
+};
+
+export default TemplateEditor;

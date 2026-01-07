@@ -1,0 +1,35 @@
+# Render.com Configuration
+# This file configures automatic deployment for the backend
+
+services:
+  # Backend API Service
+  - type: web
+    name: setukpa-api
+    runtime: node
+    region: singapore
+    plan: free
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: DATABASE_URL
+        fromDatabase:
+          name: setukpa-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: CORS_ORIGIN
+        sync: false  # Set after frontend is deployed
+    healthCheckPath: /health
+    autoDeploy: true
+
+databases:
+  - name: setukpa-db
+    plan: free
+    databaseName: setukpa
+    region: singapore

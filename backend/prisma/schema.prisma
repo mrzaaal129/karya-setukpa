@@ -1,0 +1,354 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ActivityLog {
+  id        String   @id
+  userId    String
+  action    String
+  type      String
+  metadata  Json?
+  createdAt DateTime @default(now())
+  User      User     @relation(fields: [userId], references: [id])
+
+  @@index([createdAt])
+  @@index([userId])
+}
+
+model Assignment {
+  id              String            @id
+  title           String
+  subject         String
+  deadline        DateTime
+  status          AssignmentStatus  @default(SCHEDULED)
+  templateId      String?
+  batchId         String?
+  superAdminId    String?
+  progress        Int               @default(0)
+  totalWords      Int               @default(0)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime
+  activationDate  DateTime          @default(now())
+  PaperTemplate   PaperTemplate?    @relation(fields: [templateId], references: [id])
+  Batch           Batch?            @relation(fields: [batchId], references: [id])
+  SuperAdmin      User?             @relation("AssignmentCreator", fields: [superAdminId], references: [id])
+  ChapterSchedule ChapterSchedule[]
+  Paper           Paper[]
+
+  @@index([activationDate])
+  @@index([deadline])
+  @@index([status])
+  @@index([batchId])
+  @@index([superAdminId])
+}
+
+model Batch {
+  id         String       @id
+  name       String
+  startDate  DateTime
+  endDate    DateTime?
+  isActive   Boolean      @default(true)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime
+  User       User[]
+  Assignment Assignment[]
+}
+
+model ChapterSchedule {
+  id           String     @id
+  assignmentId String
+  chapterId    String
+  chapterTitle String
+  isOpen       Boolean    @default(false)
+  openDate     DateTime?
+  closeDate    DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime
+  Assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, chapterId])
+  @@index([assignmentId])
+}
+
+model Comment {
+  id        String   @id
+  paperId   String
+  authorId  String
+  text      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  User      User     @relation(fields: [authorId], references: [id])
+  Paper     Paper    @relation(fields: [paperId], references: [id], onDelete: Cascade)
+
+  @@index([authorId])
+  @@index([paperId])
+}
+
+model ExaminerAssignment {
+  id                                       String   @id
+  studentId                                String
+  examinerId                               String
+  createdAt                                DateTime @default(now())
+  updatedAt                                DateTime
+  User_ExaminerAssignment_examinerIdToUser User     @relation("ExaminerAssignment_examinerIdToUser", fields: [examinerId], references: [id], onDelete: Cascade)
+  User_ExaminerAssignment_studentIdToUser  User     @relation("ExaminerAssignment_studentIdToUser", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, examinerId])
+  @@index([examinerId])
+  @@index([studentId])
+}
+
+model ExaminerGrade {
+  id         String   @id
+  gradeId    String
+  examinerId String
+  score      Float
+  feedback   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime
+  User       User     @relation(fields: [examinerId], references: [id])
+  Grade      Grade    @relation(fields: [gradeId], references: [id], onDelete: Cascade)
+
+  @@index([examinerId])
+  @@index([gradeId])
+}
+
+model Grade {
+  id              String          @id
+  paperId         String          @unique
+  advisorId       String
+  finalScore      Float
+  contentScore    Float
+  structureScore  Float
+  languageScore   Float
+  formatScore     Float
+  maxContent      Float           @default(40)
+  maxStructure    Float           @default(30)
+  maxLanguage     Float           @default(20)
+  maxFormat       Float           @default(10)
+  advisorFeedback String
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime
+  ExaminerGrade   ExaminerGrade[]
+  User            User            @relation(fields: [advisorId], references: [id])
+  Paper           Paper           @relation(fields: [paperId], references: [id], onDelete: Cascade)
+
+  @@index([paperId])
+}
+
+model Paper {
+  id            String   @id
+  assignmentId  String
+  userId        String
+  title         String
+  subject       String
+  content       String   @db.Text
+  structure     Json
+  wordCount     Int      @default(0)
+  pageCount     Int      @default(0)
+  totalWords    Int      @default(0)
+  totalPages    Int      @default(0)
+  timerDuration Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime
+  grade         Float?
+
+  // Content approval workflow
+  contentApprovalStatus String?   @default("PENDING") // PENDING, APPROVED, REVISION
+  contentFeedback       String?   @db.Text
+  contentApprovedAt     DateTime?
+  contentApprovedBy     String?
+
+  // Final document upload
+  finalFileUrl    String?
+  finalFileName   String?
+  finalFileSize   Int?
+  finalUploadedAt DateTime?
+
+  // Final document approval
+  finalApprovalStatus String? // PENDING, APPROVED, REVISION
+  finalFeedback       String?   @db.Text
+  finalApprovedAt     DateTime?
+  finalApprovedBy     String?
+
+  Assignment      Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  User            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ContentApprover User?      @relation("PaperContentApprover", fields: [contentApprovedBy], references: [id])
+  FinalApprover   User?      @relation("PaperFinalApprover", fields: [finalApprovedBy], references: [id])
+  Comment         Comment[]
+  Grade           Grade?
+
+  @@unique([assignmentId, userId])
+  @@index([assignmentId])
+  @@index([userId])
+  @@index([contentApprovalStatus])
+  @@index([finalApprovalStatus])
+}
+
+model PaperTemplate {
+  id          String       @id
+  name        String
+  description String
+  settings    Json
+  pages       Json
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime
+  Assignment  Assignment[]
+
+  @@index([name])
+}
+
+model SystemSetting {
+  id                 String   @id @default(uuid())
+  key                String   @unique // 'global_settings'
+  isSystemOpen       Boolean  @default(true)
+  passingGrade       Float    @default(70.0)
+  violationThreshold Int      @default(3)
+  announcement       String?  @db.Text
+  submissionDeadline DateTime?
+  maxPlagiarismScore Float    @default(25.0) // Percentage
+  enableCopyPasteProtection Boolean @default(false)
+  enableViolationDetection Boolean @default(true)
+  
+  updatedAt          DateTime @updatedAt
+}
+
+model Announcement {
+  id        String   @id @default(uuid())
+  content   String   @db.Text
+  target    String   // 'ALL', 'SISWA', etc.
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  createdBy String?
+  Admin     User?    @relation(fields: [createdBy], references: [id])
+
+  @@index([createdAt])
+}
+
+model Notification {
+  id        String           @id
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  read      Boolean          @default(false)
+  relatedId String?
+  createdAt DateTime         @default(now())
+  User      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+}
+
+model User {
+  id                                                     String               @id
+  nosis                                                  String               @unique
+  nrp                                                    String?              @unique
+  name                                                   String
+  rank                                                   String?
+  position                                               String?
+  email                                                  String?              @unique
+  password                                               String
+  role                                                   UserRole             @default(SISWA)
+  photoUrl                                               String?
+  pembimbingId                                           String?
+  batchId                                                String?
+  createdAt                                              DateTime             @default(now())
+  updatedAt                                              DateTime
+  maxStudents                                            Int?                 @default(25)
+  resetCount                                             Int                  @default(0)
+  ActivityLog                                            ActivityLog[]
+  Comment                                                Comment[]
+  CreatedAssignments                                     Assignment[]         @relation("AssignmentCreator")
+  ExaminerAssignment_ExaminerAssignment_examinerIdToUser ExaminerAssignment[] @relation("ExaminerAssignment_examinerIdToUser")
+  ExaminerAssignment_ExaminerAssignment_studentIdToUser  ExaminerAssignment[] @relation("ExaminerAssignment_studentIdToUser")
+  ExaminerGrade                                          ExaminerGrade[]
+  Grade                                                  Grade[]
+  Paper                                                  Paper[]
+  PaperContentApprovals                                  Paper[]              @relation("PaperContentApprover")
+  PaperFinalApprovals                                    Paper[]              @relation("PaperFinalApprover")
+  Batch                                                  Batch?               @relation(fields: [batchId], references: [id])
+  User                                                   User?                @relation("UserToUser", fields: [pembimbingId], references: [id])
+  other_User                                             User[]               @relation("UserToUser")
+  Violation                                              Violation[]
+  Notification                                           Notification[]
+  Announcements                                          Announcement[]
+
+  @@index([batchId])
+  @@index([pembimbingId])
+  @@index([role])
+}
+
+model Violation {
+  id          String   @id
+  userId      String
+  type        String
+  description String?
+  date        DateTime @default(now())
+  resolved    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  User        User     @relation(fields: [userId], references: [id])
+
+  @@index([resolved])
+  @@index([userId])
+}
+
+enum AssignmentStatus {
+  SCHEDULED
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  REVISION
+  APPROVED
+  COMPLETED
+}
+
+enum PageNumberPosition {
+  NONE
+  TOP_CENTER
+  BOTTOM_CENTER
+}
+
+enum PageNumberType {
+  NONE
+  ROMAN
+  ARABIC
+}
+
+enum TemplatePageType {
+  TITLE
+  STATEMENT
+  APPROVAL
+  FOREWORD
+  TOC
+  LIST_OF_TABLES
+  LIST_OF_FIGURES
+  CONTENT
+  REFERENCES
+  APPENDIX
+}
+
+enum NotificationType {
+  ASSIGNMENT
+  COMMENT
+  APPROVAL
+  REVISION
+  DEADLINE
+  SYSTEM
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  SISWA
+  PENGUJI
+  PEMBIMBING
+}
+

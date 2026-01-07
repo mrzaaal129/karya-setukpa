@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  onlyoffice-documentserver:
+    image: onlyoffice/documentserver:latest
+    container_name: onlyoffice-documentserver
+    ports:
+      - "8080:80"
+    environment:
+      - JWT_ENABLED=false
+      - JWT_SECRET=karya-setukpa-secret-2024
+    volumes:
+      - onlyoffice-logs:/var/log/onlyoffice
+      - onlyoffice-data:/var/www/onlyoffice/Data
+      - onlyoffice-lib:/var/lib/onlyoffice
+    restart: unless-stopped
+    networks:
+      - karya-network
+
+networks:
+  karya-network:
+    driver: bridge
+
+volumes:
+  onlyoffice-logs:
+  onlyoffice-data:
+  onlyoffice-lib:

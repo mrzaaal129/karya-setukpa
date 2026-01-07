@@ -1,0 +1,5 @@
+{
+  "name": "Sistem Manajemen Makalah Digital SETUKPA",
+  "description": "A web-based application for managing the creation of digital papers/theses by students with a structured guidance and assessment system. This app focuses on structured paper writing, security monitoring, and a multi-level guidance workflow.",
+  "requestFramePermissions": []
+}
