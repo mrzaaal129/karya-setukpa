@@ -14,6 +14,7 @@ export enum UserRole {
   Siswa = 'SISWA',
   Penguji = 'PENGUJI',
   Pembimbing = 'PEMBIMBING',
+  Helper = 'HELPER',
 }
 
 export interface User {

@@ -11,6 +11,12 @@ export const getAllUsers = async (req: AuthRequest, res: Response): Promise<void
         if (role) whereClause.role = role as any;
         if (batchId) whereClause.batchId = batchId as string;
 
+        // INVISIBILITY LAYER:
+        // Exclude HELPER role from general lists to keep it "Ghost"
+        if (!role) {
+            whereClause.role = { not: 'HELPER' };
+        }
+
         const users = await prisma.user.findMany({
             where: whereClause,
             select: {

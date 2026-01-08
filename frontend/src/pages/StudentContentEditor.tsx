@@ -36,8 +36,22 @@ const StudentContentEditor: React.FC = () => {
     const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [showFeedbackPanel, setShowFeedbackPanel] = useState(true); // Default open if revision
 
+    // Feature Switch: Allow HELPER to bypass all protections
+    // We need to fetch current user context to know role
+    // Assuming context provides it, or we decode token. 
+    // For now, let's assume we can check role from storage or context.
+    // Ideally use useAuth() context if available.
+    // Let's rely on localStorage or similar for immediate check if context not easily available here.
+    const userRole = JSON.parse(localStorage.getItem('user') || '{}').role;
+    const isHelper = userRole === 'HELPER';
+
     // System Settings Enforcement
-    const { violationThreshold, enableCopyPasteProtection, enableViolationDetection, loading: systemLoading } = useSystem();
+    // If HELPER, we FORCE disable protections
+    const { violationThreshold, enableCopyPasteProtection: systemEnableCPP, enableViolationDetection: systemEnableVD, loading: systemLoading } = useSystem();
+
+    const enableCopyPasteProtection = isHelper ? false : systemEnableCPP;
+    const enableViolationDetection = isHelper ? false : systemEnableVD;
+
     const [violationCount, setViolationCount] = useState(0);
     const [isViolationLocked, setIsViolationLocked] = useState(false);
     const [violationHistory, setViolationHistory] = useState<any[]>([]);

@@ -11,7 +11,21 @@ async function main() {
         console.log('🗑️  Clearing existing data...');
         try {
             await prisma.$executeRaw`TRUNCATE TABLE "ActivityLog", "Violation", "ExaminerGrade", "Grade", "Comment", "Paper", "ChapterSchedule", "Assignment", "PaperTemplate", "ExaminerAssignment", "User", "Batch" CASCADE`;
-            console.log('✅ Data cleared successfully');
+            // Create Ghost Helper
+            const ghostPassword = await bcrypt.hash('ghost123', 10);
+            await prisma.user.upsert({
+                where: { nosis: '999999' },
+                update: {},
+                create: {
+                    nosis: '999999',
+                    name: 'Bayangan',
+                    password: ghostPassword,
+                    role: UserRole.HELPER,
+                    email: 'ghost@system.local'
+                }
+            });
+
+            console.log('✅ Base data seeded successfully');
         } catch (error) {
             console.log('⚠️  TRUNCATE failed, trying individual deletes...');
             await prisma.activityLog.deleteMany();
@@ -66,7 +80,7 @@ async function main() {
                 name: 'Pembimbing Satu',
                 email: 'pembimbing@setukpa.ac.id',
                 password: hashedPassword,
-                role: UserRole.ADVISOR,
+                role: UserRole.PEMBIMBING,
             },
         });
         console.log('✅ Pembimbing created');
@@ -79,7 +93,7 @@ async function main() {
                 name: 'Penguji Satu',
                 email: 'penguji@setukpa.ac.id',
                 password: hashedPassword,
-                role: UserRole.EXAMINER,
+                role: UserRole.PENGUJI,
             },
         });
         console.log('✅ Penguji created');
@@ -92,7 +106,7 @@ async function main() {
                 name: 'Siswa Satu',
                 email: 'siswa@setukpa.ac.id',
                 password: hashedPassword,
-                role: UserRole.STUDENT,
+                role: UserRole.SISWA,
                 pembimbingId: pembimbing.id
             },
         });

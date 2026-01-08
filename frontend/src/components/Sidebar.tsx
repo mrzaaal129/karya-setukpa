@@ -71,6 +71,7 @@ const Sidebar: React.FC = () => {
                         <NavItem to="/admin/examiners" icon={ClipboardCheckIcon} label="Penguji" />
                     </>
                 );
+            case UserRole.Helper:
             case UserRole.SuperAdmin:
                 return (
                     <>

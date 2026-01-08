@@ -276,6 +276,33 @@ export const updatePaper = async (req: AuthRequest, res: Response): Promise<void
         if (timerDuration !== undefined) updateData.timerDuration = timerDuration;
         if (contentApprovalStatus !== undefined) updateData.contentApprovalStatus = contentApprovalStatus;
 
+        // Check Access Control
+        const user = req.user!;
+
+        // Fetch paper to check ownership
+        const existingPaper = await prisma.paper.findUnique({
+            where: { id },
+            select: { userId: true }
+        });
+
+        if (!existingPaper) {
+            res.status(404).json({ error: 'Paper not found' });
+            return;
+        }
+
+        // Rule: SISWA can only update their own paper
+        // HELPER, ADMIN, SUPER_ADMIN can update ANY paper
+        // PENGUJI/PEMBIMBING usually don't update content here (they use grading/approval), but if they do, we might restrict.
+        // For now, strict check for SISWA.
+        if (user.role === 'SISWA' && existingPaper.userId !== user.userId) {
+            res.status(403).json({ error: 'Forbidden: You can only edit your own paper' });
+            return;
+        }
+
+        // GHOST/HELPER BYPASS:
+        // If HELPER, we allow update.
+        // Validation of "Trace" is implicitly handled (we don't create extra logs here).
+
         const paper = await prisma.paper.update({
             where: { id },
             data: updateData,

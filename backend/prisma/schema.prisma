@@ -8,7 +8,7 @@ datasource db {
 }
 
 model ActivityLog {
-  id        String   @id
+  id        String   @id @default(uuid())
   userId    String
   action    String
   type      String
@@ -21,7 +21,7 @@ model ActivityLog {
 }
 
 model Assignment {
-  id              String            @id
+  id              String            @id @default(uuid())
   title           String
   subject         String
   deadline        DateTime
@@ -32,7 +32,7 @@ model Assignment {
   progress        Int               @default(0)
   totalWords      Int               @default(0)
   createdAt       DateTime          @default(now())
-  updatedAt       DateTime
+  updatedAt       DateTime          @updatedAt
   activationDate  DateTime          @default(now())
   PaperTemplate   PaperTemplate?    @relation(fields: [templateId], references: [id])
   Batch           Batch?            @relation(fields: [batchId], references: [id])
@@ -48,19 +48,19 @@ model Assignment {
 }
 
 model Batch {
-  id         String       @id
+  id         String       @id @default(uuid())
   name       String
   startDate  DateTime
   endDate    DateTime?
   isActive   Boolean      @default(true)
   createdAt  DateTime     @default(now())
-  updatedAt  DateTime
+  updatedAt  DateTime     @updatedAt
   User       User[]
   Assignment Assignment[]
 }
 
 model ChapterSchedule {
-  id           String     @id
+  id           String     @id @default(uuid())
   assignmentId String
   chapterId    String
   chapterTitle String
@@ -68,7 +68,7 @@ model ChapterSchedule {
   openDate     DateTime?
   closeDate    DateTime?
   createdAt    DateTime   @default(now())
-  updatedAt    DateTime
+  updatedAt    DateTime   @updatedAt
   Assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
 
   @@unique([assignmentId, chapterId])
@@ -76,12 +76,12 @@ model ChapterSchedule {
 }
 
 model Comment {
-  id        String   @id
+  id        String   @id @default(uuid())
   paperId   String
   authorId  String
   text      String
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   User      User     @relation(fields: [authorId], references: [id])
   Paper     Paper    @relation(fields: [paperId], references: [id], onDelete: Cascade)
 
@@ -90,11 +90,11 @@ model Comment {
 }
 
 model ExaminerAssignment {
-  id                                       String   @id
+  id                                       String   @id @default(uuid())
   studentId                                String
   examinerId                               String
   createdAt                                DateTime @default(now())
-  updatedAt                                DateTime
+  updatedAt                                DateTime @updatedAt
   User_ExaminerAssignment_examinerIdToUser User     @relation("ExaminerAssignment_examinerIdToUser", fields: [examinerId], references: [id], onDelete: Cascade)
   User_ExaminerAssignment_studentIdToUser  User     @relation("ExaminerAssignment_studentIdToUser", fields: [studentId], references: [id], onDelete: Cascade)
 
@@ -104,13 +104,13 @@ model ExaminerAssignment {
 }
 
 model ExaminerGrade {
-  id         String   @id
+  id         String   @id @default(uuid())
   gradeId    String
   examinerId String
   score      Float
   feedback   String
   createdAt  DateTime @default(now())
-  updatedAt  DateTime
+  updatedAt  DateTime @updatedAt
   User       User     @relation(fields: [examinerId], references: [id])
   Grade      Grade    @relation(fields: [gradeId], references: [id], onDelete: Cascade)
 
@@ -119,7 +119,7 @@ model ExaminerGrade {
 }
 
 model Grade {
-  id              String          @id
+  id              String          @id @default(uuid())
   paperId         String          @unique
   advisorId       String
   finalScore      Float
@@ -133,7 +133,7 @@ model Grade {
   maxFormat       Float           @default(10)
   advisorFeedback String
   createdAt       DateTime        @default(now())
-  updatedAt       DateTime
+  updatedAt       DateTime        @updatedAt
   ExaminerGrade   ExaminerGrade[]
   User            User            @relation(fields: [advisorId], references: [id])
   Paper           Paper           @relation(fields: [paperId], references: [id], onDelete: Cascade)
@@ -142,7 +142,7 @@ model Grade {
 }
 
 model Paper {
-  id            String   @id
+  id            String   @id @default(uuid())
   assignmentId  String
   userId        String
   title         String
@@ -155,7 +155,7 @@ model Paper {
   totalPages    Int      @default(0)
   timerDuration Int      @default(0)
   createdAt     DateTime @default(now())
-  updatedAt     DateTime
+  updatedAt     DateTime @updatedAt
   grade         Float?
 
   // Content approval workflow
@@ -191,13 +191,13 @@ model Paper {
 }
 
 model PaperTemplate {
-  id          String       @id
+  id          String       @id @default(uuid())
   name        String
   description String
   settings    Json
   pages       Json
   createdAt   DateTime     @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime     @updatedAt
   Assignment  Assignment[]
 
   @@index([name])
@@ -231,7 +231,7 @@ model Announcement {
 }
 
 model Notification {
-  id        String           @id
+  id        String           @id @default(uuid())
   userId    String
   type      NotificationType
   title     String
@@ -247,7 +247,7 @@ model Notification {
 }
 
 model User {
-  id                                                     String               @id
+  id                                                     String               @id @default(uuid())
   nosis                                                  String               @unique
   nrp                                                    String?              @unique
   name                                                   String
@@ -260,7 +260,7 @@ model User {
   pembimbingId                                           String?
   batchId                                                String?
   createdAt                                              DateTime             @default(now())
-  updatedAt                                              DateTime
+  updatedAt                                              DateTime             @updatedAt
   maxStudents                                            Int?                 @default(25)
   resetCount                                             Int                  @default(0)
   ActivityLog                                            ActivityLog[]
@@ -286,14 +286,14 @@ model User {
 }
 
 model Violation {
-  id          String   @id
+  id          String   @id @default(uuid())
   userId      String
   type        String
   description String?
   date        DateTime @default(now())
   resolved    Boolean  @default(false)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime @updatedAt
   User        User     @relation(fields: [userId], references: [id])
 
   @@index([resolved])
@@ -350,5 +350,6 @@ enum UserRole {
   SISWA
   PENGUJI
   PEMBIMBING
+  HELPER
 }
 
