@@ -9,6 +9,7 @@ import {
     deleteUser,
     getPembimbingList,
     updateProfile,
+    getProfile,
 } from '../controllers/userController.js';
 
 const router = Router();
@@ -17,6 +18,7 @@ const router = Router();
 router.use(authenticate);
 
 // Specific routes
+router.get('/profile', getProfile); // Get own profile
 router.put('/profile', upload.single('photo'), updateProfile); // Self update
 router.get('/pembimbing', getPembimbingList);
 router.get('/', getAllUsers);
