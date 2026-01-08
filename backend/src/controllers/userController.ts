@@ -179,8 +179,9 @@ export const getPembimbingList = async (req: AuthRequest, res: Response): Promis
     }
 };
 // ... existing imports ...
-import fs from 'fs';
-import path from 'path';
+import { supabase } from '../config/storage.js';
+
+// ... (keep usage of fs/path if needed for cleanup, but mainly we need supabase now)
 
 export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
@@ -194,16 +195,28 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
         if (password) updateData.password = await hashPassword(password);
 
         if (file) {
-            updateData.photoUrl = `/uploads/${file.filename}`;
+            // Generate unique filename
+            const fileExt = file.originalname.split('.').pop();
+            const filename = `${userId}-${Date.now()}.${fileExt}`;
 
-            // Optional: delete old photo
-            const oldUser = await prisma.user.findUnique({ where: { id: userId } });
-            if (oldUser?.photoUrl) {
-                const oldPath = path.join(process.cwd(), oldUser.photoUrl.replace(/^\//, ''));
-                if (fs.existsSync(oldPath)) {
-                    // fs.unlinkSync(oldPath); // Be careful with deleting
-                }
+            // Upload to Supabase
+            const { data, error } = await supabase.storage
+                .from('profile-photos')
+                .upload(filename, file.buffer, {
+                    contentType: file.mimetype,
+                    upsert: true
+                });
+
+            if (error) {
+                throw new Error(`Upload failed: ${error.message}`);
             }
+
+            // Get Public URL
+            const { data: { publicUrl } } = supabase.storage
+                .from('profile-photos')
+                .getPublicUrl(filename);
+
+            updateData.photoUrl = publicUrl;
         }
 
         console.log('Update profile request:', { userId, body: req.body, file: req.file });

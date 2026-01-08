@@ -27,6 +27,7 @@
     "author": "SETUKPA",
     "license": "MIT",
     "dependencies": {
+        "@supabase/supabase-js": "^2.90.1",
         "@types/pdfkit": "^0.17.4",
         "@types/pg": "^8.15.6",
         "axios": "^1.13.2",
