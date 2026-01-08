@@ -86,6 +86,11 @@ const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ onClose }) 
                                 src={previewUrl || `https://i.pravatar.cc/150?u=${currentUser?.id}`}
                                 alt="Profile"
                                 className="w-24 h-24 rounded-full object-cover border-4 border-gray-50"
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.onerror = null;
+                                    target.src = `https://i.pravatar.cc/150?u=${currentUser?.id}`;
+                                }}
                             />
                             <button
                                 type="button"

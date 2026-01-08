@@ -42,6 +42,11 @@ const Header: React.FC = () => {
             className="h-10 w-10 rounded-full object-cover border border-gray-200"
             src={getPhotoUrl(currentUser)}
             alt="User avatar"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.onerror = null; // Prevent infinite loop
+              target.src = `https://i.pravatar.cc/100?u=${currentUser.id}`;
+            }}
           />
           <div className="ml-3 hidden md:block text-left">
             <p className="text-sm font-semibold text-gray-800">{currentUser.name}</p>
