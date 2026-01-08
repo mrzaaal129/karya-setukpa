@@ -407,9 +407,7 @@ export const getCalendarEvents = async (req: Request, res: Response) => {
         res.json(events);
     } catch (error) {
         console.error('Error fetching calendar events:', error);
-        res.status(500).json({
-            error: 'Failed to fetch calendar events',
-            details: error instanceof Error ? error.message : 'Unknown error'
-        });
+        // Fail-safe: Return empty array instead of crashing so UI keeps working
+        res.json([]);
     }
 };
