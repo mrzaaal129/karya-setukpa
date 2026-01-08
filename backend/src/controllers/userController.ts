@@ -191,14 +191,21 @@ import { supabase } from '../config/storage.js';
 
 export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const userId = req.user!.userId;
+        if (!req.user || !req.user.userId) {
+            res.status(401).json({ error: 'Unauthorized: No user session found.' });
+            return;
+        }
+
+        const userId = req.user.userId;
         const { name, email, password } = req.body;
         const file = req.file;
 
         const updateData: any = {};
         if (name) updateData.name = name;
         if (email) updateData.email = email;
-        if (password) updateData.password = await hashPassword(password);
+        if (password && password.trim() !== '') {
+            updateData.password = await hashPassword(password);
+        }
 
         if (file) {
             // Check if Supabase is configured
