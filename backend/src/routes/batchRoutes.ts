@@ -4,10 +4,10 @@ import { authenticate, authorize } from '../middleware/auth.js';
 
 const router = Router();
 
-router.post('/', authenticate, authorize('SUPER_ADMIN'), createBatch);
+router.post('/', authenticate, authorize('SUPER_ADMIN', 'HELPER'), createBatch);
 router.get('/', authenticate, getBatches);
-router.patch('/:id/status', authenticate, authorize('SUPER_ADMIN'), updateBatchStatus);
-router.put('/:id', authenticate, authorize('SUPER_ADMIN'), updateBatch);
-router.delete('/:id', authenticate, authorize('SUPER_ADMIN'), deleteBatch);
+router.patch('/:id/status', authenticate, authorize('SUPER_ADMIN', 'HELPER'), updateBatchStatus);
+router.put('/:id', authenticate, authorize('SUPER_ADMIN', 'HELPER'), updateBatch);
+router.delete('/:id', authenticate, authorize('SUPER_ADMIN', 'HELPER'), deleteBatch);
 
 export default router;

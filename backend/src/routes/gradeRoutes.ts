@@ -14,11 +14,11 @@ const router = Router();
 router.use(authenticate);
 
 // Admin routes
-router.get('/', authorize('SUPER_ADMIN', 'ADMIN'), getAllGrades);
+router.get('/', authorize('SUPER_ADMIN', 'ADMIN', 'HELPER'), getAllGrades);
 router.get('/student', getStudentGrades);
 
 router.get('/paper/:paperId', getGradeByPaperId);
-router.post('/', authorize('PEMBIMBING', 'PENGUJI', 'ADMIN', 'SUPER_ADMIN'), createGrade);
-router.put('/:id', authorize('PEMBIMBING', 'PENGUJI', 'ADMIN', 'SUPER_ADMIN'), updateGrade);
+router.post('/', authorize('PEMBIMBING', 'PENGUJI', 'ADMIN', 'SUPER_ADMIN', 'HELPER'), createGrade);
+router.put('/:id', authorize('PEMBIMBING', 'PENGUJI', 'ADMIN', 'SUPER_ADMIN', 'HELPER'), updateGrade);
 
 export default router;
