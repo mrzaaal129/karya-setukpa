@@ -201,6 +201,15 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
         if (password) updateData.password = await hashPassword(password);
 
         if (file) {
+            // Check if Supabase is configured
+            if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+                console.warn('Supabase not configured, skipping photo upload');
+                // Don't throw, just skip or return warning? 
+                // Better to return validation error if user INTENDED to upload
+                res.status(503).json({ error: 'Photo upload service unavailable (configuration missing)' });
+                return;
+            }
+
             // Generate unique filename
             const fileExt = file.originalname.split('.').pop();
             const filename = `${userId}-${Date.now()}.${fileExt}`;
@@ -214,6 +223,7 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
                 });
 
             if (error) {
+                console.error('Supabase upload error:', error);
                 throw new Error(`Upload failed: ${error.message}`);
             }
 
@@ -225,12 +235,11 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
             updateData.photoUrl = publicUrl;
         }
 
-        console.log('Update profile request:', { userId, body: req.body, file: req.file });
+        console.log('Update profile request:', { userId, body: req.body, file: req.file ? 'YES' : 'NO' });
 
         const user = await prisma.user.update({
             where: { id: userId },
             data: updateData,
-            // Select specific fields manually to avoid type issues if generated client is stale
             select: {
                 id: true,
                 nosis: true,
@@ -239,15 +248,8 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
                 role: true,
                 pembimbingId: true,
                 createdAt: true,
-                // photoUrl: true, // Commenting out to prevent TS error during debug if types aren't synced
             },
         });
-
-        // Return full user data including photoUrl (which is returned by default if not selecting, 
-        // but here we are selecting. Let's fetch it again or just trust the update)
-        // Actually, let's just use the `user` object returned. If we want photoUrl, we need to select it. 
-        // If TS complains, we can cast or just not select it and rely on a separate query or loose typing.
-        // For now, let's REMOVE the explicit select to get all fields, which is safer for "editing".
 
         // Return user data with specific fields including photoUrl
         const updatedUser = await prisma.user.findUnique({
@@ -268,9 +270,16 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
         console.log('Profile updated successfully:', { userId, photoUrl: updatedUser?.photoUrl });
 
         res.json({ user: updatedUser });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Update profile error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+
+        // Prisma unique constraint error
+        if (error.code === 'P2002') {
+            res.status(409).json({ error: 'Data already exists (e.g. Email or NOSIS already taken)' });
+            return;
+        }
+
+        res.status(500).json({ error: error.message || 'Internal server error' });
     }
 };
 
