@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { XIcon, CameraIcon, SaveIcon } from './icons';
-import api from '../services/api';
+import api, { API_URL } from '../services/api';
 import toast from 'react-hot-toast';
 
 interface ProfileSettingsModalProps {
@@ -17,7 +17,7 @@ const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ onClose }) 
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [photo, setPhoto] = useState<File | null>(null);
-    const [previewUrl, setPreviewUrl] = useState<string | null>(currentUser?.photoUrl ? `http://localhost:3001${currentUser.photoUrl}` : null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(currentUser?.photoUrl ? `${API_URL.replace('/api', '')}${currentUser.photoUrl}` : null);
     const [loading, setLoading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { DocumentEditor } from '@onlyoffice/document-editor-react';
+import { API_URL } from '../services/api';
 
 interface OnlyOfficeEditorProps {
     documentId: string;
@@ -20,13 +21,18 @@ const OnlyOfficeEditor: React.FC<OnlyOfficeEditorProps> = ({
 }) => {
     const [error, setError] = useState<string | null>(null);
 
+    // Ensure absolute URL for OnlyOffice callbacks
+    const absoluteApiUrl = API_URL.startsWith('http')
+        ? API_URL
+        : `${window.location.origin}${API_URL}`;
+
     const config = {
         documentType: 'word',
         document: {
             fileType: 'docx',
             key: documentId, // Unique document key - change this to force reload
             title: documentTitle,
-            url: `http://localhost:3001/api/documents/${documentId}/download`,
+            url: `${absoluteApiUrl}/documents/${documentId}/download`,
             permissions: {
                 edit: mode === 'edit',
                 download: true,
@@ -38,7 +44,7 @@ const OnlyOfficeEditor: React.FC<OnlyOfficeEditorProps> = ({
         editorConfig: {
             mode: mode,
             lang: 'id-ID', // Indonesian
-            callbackUrl: `http://localhost:3001/api/documents/${documentId}/save`,
+            callbackUrl: `${absoluteApiUrl}/documents/${documentId}/save`,
             user: {
                 id: userId,
                 name: userName

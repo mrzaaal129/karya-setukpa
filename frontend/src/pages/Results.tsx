@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api from '../services/api';
+import api, { API_URL } from '../services/api';
 import {
     Download, ArrowLeft, FileText, MessageCircle, User, BookOpen, File,
     ExternalLink, CheckCircle2, Clock, ChevronRight, LayoutGrid,
@@ -422,7 +422,7 @@ const Results: React.FC = () => {
                                                         </div>
                                                     </div>
                                                     <a
-                                                        href={data.finalFileUrl.startsWith('http') ? data.finalFileUrl : `http://localhost:3001${data.finalFileUrl}`}
+                                                        href={data.finalFileUrl.startsWith('http') ? data.finalFileUrl : `${API_URL.replace('/api', '')}${data.finalFileUrl}`}
                                                         download
                                                         target="_blank"
                                                         className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-lg text-xs font-bold hover:bg-slate-700 transition-colors shadow-sm"
@@ -432,7 +432,7 @@ const Results: React.FC = () => {
                                                 </div>
                                                 <div className="flex-1 bg-slate-200 relative">
                                                     <iframe
-                                                        src={`${data.finalFileUrl.startsWith('http') ? data.finalFileUrl : `http://localhost:3001${data.finalFileUrl}`}#toolbar=0`}
+                                                        src={`${data.finalFileUrl.startsWith('http') ? data.finalFileUrl : `${API_URL.replace('/api', '')}${data.finalFileUrl}`}#toolbar=0`}
                                                         className="absolute inset-0 w-full h-full"
                                                         title="PDF Preview"
                                                     />

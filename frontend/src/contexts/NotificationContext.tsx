@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { API_URL } from '../services/api';
 
 interface Notification {
     id: string;
@@ -34,10 +35,10 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             const token = localStorage.getItem('token');
 
             const [notifResponse, countResponse] = await Promise.all([
-                axios.get('http://localhost:3001/api/notifications', {
+                axios.get(`${API_URL}/notifications`, {
                     headers: { Authorization: `Bearer ${token}` },
                 }),
-                axios.get('http://localhost:3001/api/notifications/unread', {
+                axios.get(`${API_URL}/notifications/unread`, {
                     headers: { Authorization: `Bearer ${token}` },
                 }),
             ]);
@@ -55,7 +56,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         try {
             const token = localStorage.getItem('token');
             await axios.put(
-                `http://localhost:3001/api/notifications/${id}/read`,
+                `${API_URL}/notifications/${id}/read`,
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -74,7 +75,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         try {
             const token = localStorage.getItem('token');
             await axios.put(
-                'http://localhost:3001/api/notifications/read-all',
+                `${API_URL}/notifications/read-all`,
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
             );

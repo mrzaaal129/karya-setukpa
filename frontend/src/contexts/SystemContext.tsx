@@ -2,6 +2,7 @@
 import React, { createContext, useState, useContext, ReactNode, useCallback, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
+import { API_URL } from '../services/api';
 
 interface SystemSettings {
   isSystemOpen: boolean;
@@ -48,7 +49,7 @@ export const SystemProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const token = getToken();
     if (!token) return;
     try {
-      const response = await axios.get('http://localhost:3001/api/settings', {
+      const response = await axios.get(`${API_URL}/settings`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -125,7 +126,7 @@ export const SystemProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setSettings(prev => ({ ...prev, isSystemOpen: newStatus }));
 
     try {
-      await axios.put('http://localhost:3001/api/settings',
+      await axios.put(`${API_URL}/settings`,
         { ...settings, isSystemOpen: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -150,7 +151,7 @@ export const SystemProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         payload.announcement = newSettings.systemAnnouncement;
       }
 
-      await axios.put('http://localhost:3001/api/settings',
+      await axios.put(`${API_URL}/settings`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -168,7 +169,7 @@ export const SystemProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const token = getToken();
     if (!token) return;
     try {
-      const res = await axios.get('http://localhost:3001/api/settings/announcements', {
+      const res = await axios.get(`${API_URL}/settings/announcements`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAnnouncements(res.data);
@@ -182,7 +183,7 @@ export const SystemProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     if (!token) return;
 
     try {
-      await axios.post('http://localhost:3001/api/settings/broadcast',
+      await axios.post(`${API_URL}/settings/broadcast`,
         { announcement: message },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -200,7 +201,7 @@ export const SystemProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     if (!token) return;
 
     try {
-      await axios.post('http://localhost:3001/api/settings/retract',
+      await axios.post(`${API_URL}/settings/retract`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -218,7 +219,7 @@ export const SystemProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const token = getToken();
     if (!token) return;
     try {
-      await axios.delete(`http://localhost:3001/api/settings/announcements/${id}`, {
+      await axios.delete(`${API_URL}/settings/announcements/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchAnnouncements(); // Refresh list

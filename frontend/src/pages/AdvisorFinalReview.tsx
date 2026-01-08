@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api from '../services/api';
+import api, { API_URL } from '../services/api';
 import { ArrowLeft, CheckCircle, XCircle, FileText, Download, History, User, Calendar, ShieldCheck, AlertCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -114,7 +114,7 @@ const AdvisorFinalReview: React.FC = () => {
                                     </div>
                                     <div className="flex gap-2">
                                         <a
-                                            href={`http://localhost:3001${paper.finalFileUrl}`}
+                                            href={`${API_URL.replace('/api', '')}${paper.finalFileUrl}`}
                                             target="_blank"
                                             rel="noreferrer"
                                             className="p-2 hover:bg-white hover:shadow-md rounded-lg transition text-slate-600 border border-transparent hover:border-slate-200"
@@ -127,7 +127,7 @@ const AdvisorFinalReview: React.FC = () => {
                                 <div className="flex-1 bg-slate-200 overflow-hidden relative">
                                     {paper.finalFileName?.toLowerCase().endsWith('.pdf') ? (
                                         <iframe
-                                            src={`http://localhost:3001${paper.finalFileUrl}`}
+                                            src={`${API_URL.replace('/api', '')}${paper.finalFileUrl}`}
                                             className="w-full h-full"
                                             title="PDF Preview"
                                         />
@@ -136,7 +136,7 @@ const AdvisorFinalReview: React.FC = () => {
                                             <FileText size={48} className="opacity-20" />
                                             <p>Preview tidak tersedia untuk format ini</p>
                                             <a
-                                                href={`http://localhost:3001${paper.finalFileUrl}`}
+                                                href={`${API_URL.replace('/api', '')}${paper.finalFileUrl}`}
                                                 className="text-indigo-600 hover:underline font-medium"
                                             >
                                                 Download untuk melihat

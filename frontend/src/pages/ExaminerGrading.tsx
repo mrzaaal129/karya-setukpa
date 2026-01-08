@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api from '../services/api';
+import api, { API_URL } from '../services/api';
 import { ArrowLeft, Save, Star, FileText, Download } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -96,7 +96,7 @@ const ExaminerGrading: React.FC = () => {
                                         </div>
                                     </div>
                                     <a
-                                        href={`http://localhost:3001${paper.finalFileUrl}`}
+                                        href={`${API_URL.replace('/api', '')}${paper.finalFileUrl}`}
                                         target="_blank"
                                         rel="noreferrer"
                                         className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-300 text-blue-700 hover:bg-blue-100 rounded-lg transition"
@@ -111,7 +111,7 @@ const ExaminerGrading: React.FC = () => {
                                         <div className="p-3 bg-gray-200 text-sm font-semibold text-gray-700 flex justify-between items-center">
                                             <span>Pratinjau Dokumen</span>
                                             <a
-                                                href={`http://localhost:3001${paper.finalFileUrl}`}
+                                                href={`${API_URL.replace('/api', '')}${paper.finalFileUrl}`}
                                                 target="_blank"
                                                 className="text-blue-600 hover:underline text-xs"
                                             >
@@ -119,7 +119,7 @@ const ExaminerGrading: React.FC = () => {
                                             </a>
                                         </div>
                                         <iframe
-                                            src={`http://localhost:3001${paper.finalFileUrl}`}
+                                            src={`${API_URL.replace('/api', '')}${paper.finalFileUrl}`}
                                             className="w-full h-[800px] bg-white"
                                             title="PDF Preview"
                                         />

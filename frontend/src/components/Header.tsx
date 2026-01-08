@@ -3,6 +3,7 @@ import NotificationDropdown from './NotificationDropdown';
 import { useUser } from '../contexts/UserContext';
 import { UserRole } from '../types';
 import ProfileSettingsModal from './ProfileSettingsModal';
+import { API_URL } from '../services/api';
 
 const Header: React.FC = () => {
   const { currentUser } = useUser();
@@ -18,7 +19,7 @@ const Header: React.FC = () => {
 
   const getPhotoUrl = (user: any) => {
     if (user.photoUrl) {
-      return `http://localhost:3001${user.photoUrl}`; // Ensure backend URL is correct
+      return `${API_URL.replace('/api', '')}${user.photoUrl}`; // Ensure backend URL is correct
     }
     return `https://i.pravatar.cc/100?u=${user.id}`;
   };
