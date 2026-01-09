@@ -305,21 +305,6 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
     }
 };
 
-console.log('Profile updated successfully:', { userId, photoUrl: updatedUser?.photoUrl });
-
-res.json({ user: updatedUser });
-    } catch (error: any) {
-    console.error('Update profile error:', error);
-
-    // Prisma unique constraint error
-    if (error.code === 'P2002') {
-        res.status(409).json({ error: 'Data already exists (e.g. Email or NOSIS already taken)' });
-        return;
-    }
-
-    res.status(500).json({ error: error.message || 'Internal server error' });
-}
-};
 
 export const getProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
