@@ -1,7 +1,7 @@
 
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
-import prisma from '../config/database.js';
+import prisma from '../lib/prisma.js';
 
 export const getGradeByPaperId = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
@@ -259,7 +259,7 @@ export const updateGrade = async (req: AuthRequest, res: Response): Promise<void
 export const getAllGrades = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const papers = await prisma.paper.findMany({
-            where: req.user?.role === 'HELPER' ? undefined : {
+            where: req.user?.role === 'HELPER' ? {} : {
                 OR: [
                     { grade: { not: null } },
                     { Grade: { isNot: null } }
