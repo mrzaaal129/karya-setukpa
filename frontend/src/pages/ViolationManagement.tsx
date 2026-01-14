@@ -135,10 +135,12 @@ const ViolationManagement: React.FC = () => {
                                 </tr>
                             ) : filteredStudents.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500 flex flex-col items-center">
-                                        <CheckCircle size={48} className="text-green-500 mb-3" />
-                                        <p className="font-medium text-lg text-gray-800">Tidak ada pelanggaran aktif</p>
-                                        <p className="text-sm">Semua siswa aman atau data kosong.</p>
+                                    <td colSpan={5} className="px-6 py-12 text-center">
+                                        <div className="flex flex-col items-center justify-center text-gray-500">
+                                            <CheckCircle size={48} className="text-green-500 mb-3" />
+                                            <p className="font-medium text-lg text-gray-800">Tidak ada pelanggaran aktif</p>
+                                            <p className="text-sm">Semua siswa aman atau data kosong.</p>
+                                        </div>
                                     </td>
                                 </tr>
                             ) : (
