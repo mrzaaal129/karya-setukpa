@@ -58,13 +58,19 @@ const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ onClose }) 
             console.log('[ProfileSettingsModal] Updated user from server:', updatedUser);
             console.log('[ProfileSettingsModal] PhotoUrl:', updatedUser?.photoUrl);
 
+            // DEBUG: Show alert so user can see the photoUrl value before page reloads
+            alert(`Debug photoUrl: ${updatedUser?.photoUrl || 'KOSONG/NULL'}`);
+
             // Update local storage and reload to refresh context (a bit hacky but works for now)
             // Ideally AuthContext should expose an 'updateUser' method
             localStorage.setItem('user', JSON.stringify(updatedUser));
 
             toast.success('Profil berhasil diperbarui! Silakan refresh halaman jika data belum berubah.');
             onClose();
-            window.location.reload();
+            // Delay reload to allow user to see the alert
+            setTimeout(() => {
+                window.location.reload();
+            }, 100); // Small delay
         } catch (error) {
             console.error(error);
             toast.error('Gagal memperbarui profil');
