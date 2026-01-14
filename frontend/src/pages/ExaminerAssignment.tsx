@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import api from '../services/api';
 import { SearchIcon, UserGroupIcon } from '../components/icons';
-import { Users, UserCheck, UserX, AlertCircle, CheckCircle2, Trash2, ChevronDown, Loader2, X, Plus, Zap, Settings } from 'lucide-react';
+import { Users, UserCheck, UserX, AlertCircle, CheckCircle2, Trash2, ChevronDown, Loader2, X, Plus, Zap, Settings, RotateCcw, Undo2 } from 'lucide-react';
 
 interface Student {
     id: string;
@@ -45,6 +45,11 @@ const ExaminerAssignment: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [autoAssigning, setAutoAssigning] = useState(false);
     const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+
+    // Reset functionality state
+    const [showResetMenu, setShowResetMenu] = useState(false);
+    const [canUndo, setCanUndo] = useState(false);
+    const [resetting, setResetting] = useState(false);
 
     // Assignment Modal state
     const [showAssignModal, setShowAssignModal] = useState(false);
@@ -121,11 +126,66 @@ const ExaminerAssignment: React.FC = () => {
         try {
             const response = await api.post('/examiner-assignment/auto-assign');
             setNotification({ type: 'success', message: `${response.data.message} (${response.data.assigned} ditugaskan)` });
+            setCanUndo(true);
             await fetchData();
         } catch (error: any) {
             setNotification({ type: 'error', message: error.response?.data?.message || 'Gagal auto-assignment' });
         } finally {
             setAutoAssigning(false);
+        }
+    };
+
+    // Reset all examiner assignments
+    const handleResetAll = async () => {
+        if (!confirm('PERHATIAN: Ini akan menghapus SEMUA penugasan penguji. Lanjutkan?')) return;
+
+        setResetting(true);
+        setShowResetMenu(false);
+        try {
+            const response = await api.post('/examiner-assignment/reset-all');
+            setNotification({ type: 'success', message: response.data.message });
+            setCanUndo(response.data.canUndo);
+            await fetchData();
+        } catch (error: any) {
+            setNotification({ type: 'error', message: error.response?.data?.error || 'Gagal reset penugasan' });
+        } finally {
+            setResetting(false);
+        }
+    };
+
+    // Reset specific examiner assignments
+    const handleResetExaminer = async (examinerId: string, examinerName: string) => {
+        if (!confirm(`Hapus semua siswa dari penguji ${examinerName}?`)) return;
+
+        setResetting(true);
+        setShowResetMenu(false);
+        try {
+            const response = await api.post(`/examiner-assignment/reset/${examinerId}`);
+            setNotification({ type: 'success', message: response.data.message });
+            setCanUndo(response.data.canUndo);
+            await fetchData();
+        } catch (error: any) {
+            setNotification({ type: 'error', message: error.response?.data?.error || 'Gagal reset penguji' });
+        } finally {
+            setResetting(false);
+        }
+    };
+
+    // Undo last operation
+    const handleUndo = async () => {
+        if (!confirm('Batalkan operasi terakhir dan kembalikan penugasan sebelumnya?')) return;
+
+        setResetting(true);
+        setShowResetMenu(false);
+        try {
+            const response = await api.post('/examiner-assignment/undo');
+            setNotification({ type: 'success', message: response.data.message });
+            setCanUndo(false);
+            await fetchData();
+        } catch (error: any) {
+            setNotification({ type: 'error', message: error.response?.data?.error || 'Gagal undo operasi' });
+        } finally {
+            setResetting(false);
         }
     };
 
@@ -310,14 +370,73 @@ const ExaminerAssignment: React.FC = () => {
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                         <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
                             <h3 className="font-semibold text-gray-800">Status Kapasitas</h3>
-                            <button
-                                onClick={handleAutoAssign}
-                                disabled={autoAssigning}
-                                className="text-xs font-medium px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors flex items-center gap-1.5"
-                            >
-                                {autoAssigning ? <Loader2 className="w-3 h-3 animate-spin" /> : <Zap className="w-3 h-3" />}
-                                Auto Assign
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={handleAutoAssign}
+                                    disabled={autoAssigning || resetting}
+                                    className="text-xs font-medium px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors flex items-center gap-1.5"
+                                >
+                                    {autoAssigning ? <Loader2 className="w-3 h-3 animate-spin" /> : <Zap className="w-3 h-3" />}
+                                    Auto Assign
+                                </button>
+
+                                {/* Reset Dropdown */}
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setShowResetMenu(!showResetMenu)}
+                                        disabled={resetting}
+                                        className="text-xs font-medium px-2 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 transition-colors flex items-center gap-1"
+                                    >
+                                        {resetting ? <Loader2 className="w-3 h-3 animate-spin" /> : <RotateCcw className="w-3 h-3" />}
+                                        <ChevronDown className="w-3 h-3" />
+                                    </button>
+
+                                    {showResetMenu && (
+                                        <div className="absolute right-0 mt-1 w-56 bg-white rounded-lg shadow-xl border border-gray-200 z-10 overflow-hidden">
+                                            <div className="p-2 border-b border-gray-100">
+                                                <p className="text-xs font-medium text-gray-500 px-2">Reset Penugasan</p>
+                                            </div>
+                                            <div className="p-1">
+                                                {canUndo && (
+                                                    <button
+                                                        onClick={handleUndo}
+                                                        className="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-md flex items-center gap-2"
+                                                    >
+                                                        <Undo2 className="w-4 h-4" />
+                                                        Undo Operasi Terakhir
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={handleResetAll}
+                                                    className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md flex items-center gap-2"
+                                                >
+                                                    <RotateCcw className="w-4 h-4" />
+                                                    Reset Semua Penugasan
+                                                </button>
+                                            </div>
+                                            {examinerCapacity && examinerCapacity.examiners.length > 0 && (
+                                                <>
+                                                    <div className="p-2 border-t border-gray-100">
+                                                        <p className="text-xs font-medium text-gray-500 px-2">Reset per Penguji</p>
+                                                    </div>
+                                                    <div className="p-1 max-h-40 overflow-y-auto">
+                                                        {examinerCapacity.examiners.filter(e => e.currentStudents > 0).map(examiner => (
+                                                            <button
+                                                                key={examiner.id}
+                                                                onClick={() => handleResetExaminer(examiner.id, examiner.name)}
+                                                                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md flex items-center justify-between"
+                                                            >
+                                                                <span className="truncate">{examiner.name}</span>
+                                                                <span className="text-xs text-gray-400">{examiner.currentStudents} siswa</span>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                         <div className="p-4 space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar">
                             {examinerCapacity?.examiners.map(examiner => (

@@ -94,14 +94,22 @@ export const autoAssignExaminers = async (req: Request, res: Response): Promise<
         });
 
         // Create examiner pool with availability tracking
+        // Use individual examiner's maxStudents setting, falling back to default MAX_STUDENTS_PER_EXAMINER
         const examinerPool = examiners
-            .filter(examiner => examiner.ExaminerAssignment_ExaminerAssignment_examinerIdToUser.length < MAX_STUDENTS_PER_EXAMINER)
-            .map(examiner => ({
-                id: examiner.id,
-                name: examiner.name,
-                currentStudents: examiner.ExaminerAssignment_ExaminerAssignment_examinerIdToUser.length,
-                availableSlots: MAX_STUDENTS_PER_EXAMINER - examiner.ExaminerAssignment_ExaminerAssignment_examinerIdToUser.length
-            }))
+            .filter(examiner => {
+                const maxStudents = examiner.maxStudents || MAX_STUDENTS_PER_EXAMINER;
+                return examiner.ExaminerAssignment_ExaminerAssignment_examinerIdToUser.length < maxStudents;
+            })
+            .map(examiner => {
+                const maxStudents = examiner.maxStudents || MAX_STUDENTS_PER_EXAMINER;
+                return {
+                    id: examiner.id,
+                    name: examiner.name,
+                    currentStudents: examiner.ExaminerAssignment_ExaminerAssignment_examinerIdToUser.length,
+                    maxStudents: maxStudents,
+                    availableSlots: maxStudents - examiner.ExaminerAssignment_ExaminerAssignment_examinerIdToUser.length
+                };
+            })
             .sort((a, b) => a.currentStudents - b.currentStudents);
 
         if (examinerPool.length < EXAMINERS_PER_STUDENT) {
@@ -446,4 +454,147 @@ export const updateExaminerCapacity = async (req: Request, res: Response): Promi
     }
 };
 
+// Store last auto-assign snapshot for undo functionality
+let lastExaminerAssignSnapshot: Array<{ assignmentId: string; studentId: string; examinerId: string }> = [];
 
+// Reset all examiner assignments (remove all students from all examiners)
+export const resetAllExaminerAssignments = async (req: Request, res: Response): Promise<void> => {
+    try {
+        // Get all examiner assignments
+        const allAssignments = await prisma.examinerAssignment.findMany({
+            select: { id: true, studentId: true, examinerId: true }
+        });
+
+        if (allAssignments.length === 0) {
+            res.json({
+                success: true,
+                message: 'No assignments to reset',
+                resetCount: 0
+            });
+            return;
+        }
+
+        // Save snapshot for undo
+        lastExaminerAssignSnapshot = allAssignments.map(a => ({
+            assignmentId: a.id,
+            studentId: a.studentId,
+            examinerId: a.examinerId
+        }));
+
+        // Delete all assignments
+        const result = await prisma.examinerAssignment.deleteMany({});
+
+        res.json({
+            success: true,
+            message: `Successfully reset ${result.count} examiner assignments`,
+            resetCount: result.count,
+            canUndo: true
+        });
+    } catch (error) {
+        console.error('Reset all examiner assignments error:', error);
+        res.status(500).json({ error: 'Failed to reset assignments' });
+    }
+};
+
+// Reset assignments for a specific examiner
+export const resetExaminerAssignments = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { examinerId } = req.params;
+
+        if (!examinerId) {
+            res.status(400).json({ error: 'examinerId is required' });
+            return;
+        }
+
+        // Check if examiner exists
+        const examiner = await prisma.user.findUnique({
+            where: { id: examinerId },
+            select: { id: true, name: true, role: true }
+        });
+
+        if (!examiner) {
+            res.status(404).json({ error: 'Examiner not found' });
+            return;
+        }
+
+        if (examiner.role !== UserRole.PENGUJI) {
+            res.status(400).json({ error: 'User is not an examiner' });
+            return;
+        }
+
+        // Get assignments for this examiner (for snapshot)
+        const assignedStudents = await prisma.examinerAssignment.findMany({
+            where: { examinerId },
+            select: { id: true, studentId: true, examinerId: true }
+        });
+
+        // Save snapshot for undo
+        lastExaminerAssignSnapshot = assignedStudents.map(a => ({
+            assignmentId: a.id,
+            studentId: a.studentId,
+            examinerId: a.examinerId
+        }));
+
+        // Delete assignments for this examiner
+        const result = await prisma.examinerAssignment.deleteMany({
+            where: { examinerId }
+        });
+
+        res.json({
+            success: true,
+            message: `Successfully reset ${result.count} students from ${examiner.name}`,
+            examinerName: examiner.name,
+            resetCount: result.count,
+            canUndo: true
+        });
+    } catch (error) {
+        console.error('Reset examiner assignments error:', error);
+        res.status(500).json({ error: 'Failed to reset examiner assignments' });
+    }
+};
+
+// Undo last reset or auto-assign operation
+export const undoLastExaminerOperation = async (req: Request, res: Response): Promise<void> => {
+    try {
+        if (lastExaminerAssignSnapshot.length === 0) {
+            res.status(400).json({
+                success: false,
+                error: 'No operation to undo',
+                message: 'There is no previous assignment operation to restore'
+            });
+            return;
+        }
+
+        // Restore previous assignments
+        let restoredCount = 0;
+        for (const snapshot of lastExaminerAssignSnapshot) {
+            try {
+                await prisma.examinerAssignment.create({
+                    data: {
+                        id: crypto.randomUUID(),
+                        studentId: snapshot.studentId,
+                        examinerId: snapshot.examinerId,
+                        updatedAt: new Date()
+                    }
+                });
+                restoredCount++;
+            } catch (e) {
+                // Skip if assignment already exists or other error
+                console.warn('Skip restoring assignment:', e);
+            }
+        }
+
+        // Clear snapshot after undo
+        lastExaminerAssignSnapshot = [];
+
+        res.json({
+            success: true,
+            message: `Successfully restored ${restoredCount} examiner assignments`,
+            restoredCount,
+            canUndo: false
+        });
+    } catch (error) {
+        console.error('Undo examiner operation error:', error);
+        res.status(500).json({ error: 'Failed to undo operation' });
+    }
+};

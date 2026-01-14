@@ -6,7 +6,10 @@ import {
     assignExaminer,
     removeExaminerAssignment,
     getStudentsWithExaminers,
-    updateExaminerCapacity
+    updateExaminerCapacity,
+    resetAllExaminerAssignments,
+    resetExaminerAssignments,
+    undoLastExaminerOperation
 } from '../controllers/examinerAssignmentController.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 
@@ -34,9 +37,16 @@ router.post('/assign', assignExaminer);
 // Update examiner max students capacity (Super Admin only)
 router.patch('/capacity/:examinerId', updateExaminerCapacity);
 
+// Reset all examiner assignments
+router.post('/reset-all', resetAllExaminerAssignments);
+
+// Reset assignments for a specific examiner
+router.post('/reset/:examinerId', resetExaminerAssignments);
+
+// Undo last reset/auto-assign operation
+router.post('/undo', undoLastExaminerOperation);
+
 // Remove examiner assignment
 router.delete('/:id', removeExaminerAssignment);
 
 export default router;
-
-
