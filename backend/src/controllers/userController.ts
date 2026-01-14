@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
 import prisma from '../config/database.js';
 import { hashPassword } from '../utils/password.js';
+import { supabase } from '../config/storage.js';
 
 export const getAllUsers = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
@@ -184,8 +185,6 @@ export const getPembimbingList = async (req: AuthRequest, res: Response): Promis
         res.status(500).json({ error: 'Internal server error' });
     }
 };
-// ... existing imports ...
-import { supabase } from '../config/storage.js';
 
 // ... (keep usage of fs/path if needed for cleanup, but mainly we need supabase now)
 
