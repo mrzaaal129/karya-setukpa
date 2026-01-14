@@ -93,11 +93,20 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         const settings = await prisma.systemSetting.findFirst();
         const passingGrade = settings?.passingGrade || 70;
 
-        // Get all final scores
-        const allGrades = gradedPapers.map(p => p.grade ?? p.Grade?.finalScore ?? 0).filter(g => g > 0);
-
-        const passedStudents = allGrades.filter(g => g >= passingGrade).length;
-        const failedStudents = allGrades.filter(g => g < passingGrade).length;
+        // Get all final scores - Fetch again with proper scope
+        let passedStudents = 0;
+        let failedStudents = 0;
+        try {
+            const allGradedPapers = await prisma.paper.findMany({
+                where: { grade: { not: null } },
+                select: { grade: true }
+            });
+            const allGrades = allGradedPapers.map(p => p.grade ?? 0).filter(g => g > 0);
+            passedStudents = allGrades.filter(g => g >= passingGrade).length;
+            failedStudents = allGrades.filter(g => g < passingGrade).length;
+        } catch (gradeStatsError) {
+            console.error('[Dashboard] Error calculating pass/fail stats:', gradeStatsError);
+        }
 
         // Return new stats "passed" and "failed"
         // We replace "activeAssignments" in the UI, but keep sending it for compatibility or other uses if needed
