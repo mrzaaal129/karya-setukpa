@@ -17,6 +17,9 @@ const SuperAdminDashboard: React.FC = () => {
   const { isSystemOpen, toggleSystemStatus } = useSystem();
   const [stats, setStats] = useState({
     totalUsers: 0,
+    totalStudents: 0,
+    totalAdvisors: 0,
+    totalExaminers: 0,
     activeAssignments: 0,
     averageGrade: 0,
     violations: 0,
@@ -109,13 +112,14 @@ const SuperAdminDashboard: React.FC = () => {
         <WelcomeBanner userName="Super Admin" />
 
         {/* Key Stats Overlap */}
-        {/* Key Stats Overlap */}
-        <div className="-mt-16 relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-          <StatCard title="Total Pengguna" value={stats.totalUsers} icon={Users} color="blue" description="Siswa & Dosen" />
+        {/* User Stats by Role + Performance Stats */}
+        <div className="-mt-16 relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
+          <StatCard title="Total Siswa" value={stats.totalStudents} icon={GraduationCap} color="blue" description="Siswa Terdaftar" />
+          <StatCard title="Total Pembimbing" value={stats.totalAdvisors} icon={User} color="teal" description="Dosen Pembimbing" />
+          <StatCard title="Total Penguji" value={stats.totalExaminers} icon={Shield} color="indigo" description="Dosen Penguji" />
           <StatCard title="Siswa Lulus" value={stats.passedStudents || 0} icon={CheckCircle} color="emerald" description="Memenuhi Syarat" />
           <StatCard title="Siswa Remedial" value={stats.failedStudents || 0} icon={ShieldAlert} color="rose" description="Perlu Perbaikan" />
-          <StatCard title="Rata-rata Nilai" value={stats.averageGrade} icon={Award} color="amber" description="Seluruh Angkatan" />
-          <StatCard title="Total Pelanggaran" value={stats.violations} icon={ShieldAlert} color="purple" description="Perlu Perhatian" />
+          <StatCard title="Pelanggaran" value={stats.violations} icon={ShieldAlert} color="purple" description="Perlu Perhatian" />
         </div>
 
         {/* Online Users Section (Restored) */}

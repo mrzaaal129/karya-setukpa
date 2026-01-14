@@ -64,6 +64,11 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         const templates = await prisma.paperTemplate.count();
         const activeStudents = await prisma.user.count({ where: { role: 'SISWA' } });
 
+        // Count users by role
+        const totalStudents = await prisma.user.count({ where: { role: 'SISWA' } });
+        const totalAdvisors = await prisma.user.count({ where: { role: 'PEMBIMBING' } });
+        const totalExaminers = await prisma.user.count({ where: { role: 'PENGUJI' } });
+
         // Calculate Online Users (Active in last 5 minutes)
         // We use a short window + client-side heartbeat for "Instant" accuracy
         const activeWindow = new Date(Date.now() - 5 * 60 * 1000); // 5 Minutes
@@ -112,6 +117,9 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         // We replace "activeAssignments" in the UI, but keep sending it for compatibility or other uses if needed
         const result = {
             totalUsers,
+            totalStudents,
+            totalAdvisors,
+            totalExaminers,
             activeAssignments,
             passedStudents,
             failedStudents,
