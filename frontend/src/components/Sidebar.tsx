@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
+
 import {
     HomeIcon, DocumentTextIcon, ChartBarIcon, LogoutIcon, UserGroupIcon,
     CogIcon, ShieldExclamationIcon, AcademicCapIcon, ClipboardCheckIcon,
@@ -75,7 +76,7 @@ const Sidebar: React.FC = () => {
                 return (
                     <>
                         <SectionHeader label="Menu Bayangan" />
-                        <NavItem to="/" icon={ChartBarIcon} label="Daftar Siswa (Laporan)" />
+                        <NavItem to="/" icon={ChartBarIcon} label="Mode Bayangan 👻" />
                     </>
                 );
             case UserRole.SuperAdmin:

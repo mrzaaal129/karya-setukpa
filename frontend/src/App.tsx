@@ -37,6 +37,7 @@ import AdvisorDashboard from './pages/AdvisorDashboard';
 import AdvisorStudentList from './pages/AdvisorStudentList';
 import ExaminerDashboard from './pages/ExaminerDashboard';
 import StudentManagement from './pages/StudentManagement';
+
 import BatchManagement from './pages/BatchManagement';
 import AdvisorManagement from './pages/admin/AdvisorManagement';
 import ExaminerManagement from './pages/admin/ExaminerManagement';
@@ -155,6 +156,8 @@ const App: React.FC = () => {
                       <ExaminerStudentList />
                     </ProtectedRoute>
                   } />
+
+
 
                   <Route path="/student/paper/:id" element={<StudentContentEditor />} />
                   <Route path="/student/final-submission/:id" element={<FinalSubmission />} />

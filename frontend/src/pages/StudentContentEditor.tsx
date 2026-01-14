@@ -665,10 +665,10 @@ const StudentContentEditor: React.FC = () => {
     };
 
     const activeChapter = chapters[activeChapterIndex];
-    const isLocked = activeChapter?.status === 'LOCKED';
+    const isLocked = activeChapter?.status === 'LOCKED' && !isHelper;
     // User request: "ketika tugas... diberi nilai... siswa tidak dapat merubahnnya"
     // Check if paper has a grade (from Examiner) or Final Grade (Advisor)
-    const isGraded = (paper?.grade !== null && paper?.grade !== undefined) || (paper?.Grade?.finalScore !== undefined);
+    const isGraded = ((paper?.grade !== null && paper?.grade !== undefined) || (paper?.Grade?.finalScore !== undefined)) && !isHelper;
     const isReadOnly = isLocked || isGraded;
 
     if (loading) {
@@ -910,7 +910,7 @@ const StudentContentEditor: React.FC = () => {
                     <div className="flex-1 flex overflow-hidden relative">
                         {/* Editor Container */}
                         <div className="flex-1 flex flex-col relative h-full">
-                            {isLocked || isViolationLocked ? (
+                            {(isLocked || (isViolationLocked && !isHelper)) ? (
                                 <div className="flex flex-col items-center justify-center p-8 text-center text-gray-500 h-full bg-slate-50">
                                     {isViolationLocked ? (
                                         <>

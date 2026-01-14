@@ -259,7 +259,7 @@ export const updateGrade = async (req: AuthRequest, res: Response): Promise<void
 export const getAllGrades = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const papers = await prisma.paper.findMany({
-            where: {
+            where: req.user?.role === 'HELPER' ? undefined : {
                 OR: [
                     { grade: { not: null } },
                     { Grade: { isNot: null } }
