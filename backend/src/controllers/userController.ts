@@ -232,7 +232,6 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
 
                     if (error) {
                         console.error('[PROFILE UPDATE] Supabase upload error:', error);
-                        // throw new Error(`Upload failed: ${error.message}`);
                         // Fail gracefully on photo
                     } else {
                         // Get Public URL
@@ -240,6 +239,7 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
                             .from('profile-photos')
                             .getPublicUrl(filename);
 
+                        console.log('[PROFILE UPDATE] Photo URL Generated:', publicUrl);
                         updateData.photoUrl = publicUrl;
                     }
                 } catch (photoError) {
