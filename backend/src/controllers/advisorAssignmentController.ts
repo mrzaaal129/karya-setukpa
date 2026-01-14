@@ -89,20 +89,28 @@ export const autoAssignAdvisors = async (req: Request, res: Response): Promise<v
         });
 
         // Filter advisors who have available slots and sort by current student count (ascending)
+        // Use individual advisor's maxStudents setting, falling back to default MAX_STUDENTS_PER_ADVISOR
         const availableAdvisors = advisors
-            .filter(advisor => advisor.other_User.length < MAX_STUDENTS_PER_ADVISOR)
-            .map(advisor => ({
-                id: advisor.id,
-                name: advisor.name,
-                currentStudents: advisor.other_User.length,
-                availableSlots: MAX_STUDENTS_PER_ADVISOR - advisor.other_User.length
-            }))
+            .filter(advisor => {
+                const maxStudents = advisor.maxStudents || MAX_STUDENTS_PER_ADVISOR;
+                return advisor.other_User.length < maxStudents;
+            })
+            .map(advisor => {
+                const maxStudents = advisor.maxStudents || MAX_STUDENTS_PER_ADVISOR;
+                return {
+                    id: advisor.id,
+                    name: advisor.name,
+                    currentStudents: advisor.other_User.length,
+                    maxStudents: maxStudents,
+                    availableSlots: maxStudents - advisor.other_User.length
+                };
+            })
             .sort((a, b) => a.currentStudents - b.currentStudents);
 
         if (availableAdvisors.length === 0) {
             res.status(400).json({
                 error: 'No advisors with available slots',
-                message: 'All advisors have reached maximum capacity (25 students)'
+                message: 'All advisors have reached their maximum capacity'
             });
             return;
         }
