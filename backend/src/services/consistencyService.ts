@@ -1,6 +1,7 @@
 import prisma from '../lib/prisma.js'; // Adjust path as needed
 import mammoth from 'mammoth';
-import pdf from 'pdf-parse';
+// @ts-ignore
+import pdf from 'pdf-parse/lib/pdf-parse.js';
 import stringSimilarity from 'string-similarity';
 import { Paper } from '@prisma/client';
 
