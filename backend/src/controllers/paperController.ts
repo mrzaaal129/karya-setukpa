@@ -1,6 +1,8 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
 import prisma from '../config/database.js';
+import { consistencyService } from '../services/consistencyService.js';
+import fs from 'fs';
 
 export const getAllPapers = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
@@ -496,13 +498,87 @@ export const uploadFinalDocument = async (req: AuthRequest, res: Response): Prom
                 finalFileName: file.originalname,
                 finalFileSize: file.size,
                 finalUploadedAt: new Date(),
-                finalApprovalStatus: 'PENDING' // Reset approval on new upload
+                finalApprovalStatus: 'PENDING', // Reset approval on new upload
+                consistencyStatus: 'PENDING_VERIFICATION' // Set status for Admin to check
             }
         });
+
+        // [Consistency Check]
+        // Read file from disk (since Multer saved it)
+        try {
+            if (file.path) {
+                const fileBuffer = fs.readFileSync(file.path);
+                await consistencyService.performConsistencyCheck(id, fileBuffer, file.mimetype);
+            }
+        } catch (checkError) {
+            console.error('Consistency check failed (non-blocking):', checkError);
+            // We don't block the upload success, but status might remain 'PENDING_VERIFICATION' or 'UNCHECKED'
+        }
 
         res.json({ paper, message: 'File uploaded successfully' });
     } catch (error) {
         console.error('Upload final document error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+export const verifyPaper = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body; // 'VERIFIED' or 'REJECTED'
+        const adminId = req.user!.userId;
+
+        if (!['VERIFIED', 'REJECTED'].includes(status)) {
+            res.status(400).json({ error: 'Invalid status' });
+            return;
+        }
+
+        const paper = await prisma.paper.update({
+            where: { id },
+            data: {
+                consistencyStatus: status,
+                // If Verified, maybe we allow Examiners to see it? 
+                // Implementation detail: Examiners filtering should respect this flag.
+            }
+        });
+
+        res.json({ paper, message: `Paper ${status}` });
+    } catch (error) {
+        console.error('Verify paper error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+export const getPendingVerificationPapers = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const papers = await prisma.paper.findMany({
+            where: {
+                consistencyStatus: 'PENDING_VERIFICATION',
+                finalFileUrl: { not: null } // Ensure file exists
+            },
+            select: {
+                id: true,
+                title: true,
+                subject: true,
+                consistencyScore: true,
+                consistencyStatus: true,
+                updatedAt: true,
+                finalFileUrl: true,
+                User: {
+                    select: {
+                        id: true,
+                        name: true,
+                        nosis: true,
+                        batchId: true
+                    }
+                }
+            },
+            orderBy: { updatedAt: 'asc' } // Oldest first
+        });
+
+        res.json({ papers });
+    } catch (error) {
+        console.error('Get pending verification error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };

@@ -176,6 +176,11 @@ model Paper {
   finalApprovedAt     DateTime?
   finalApprovedBy     String?
 
+  // Integrity / Consistency Check
+  consistencyScore    Float?    // 0.0 - 100.0
+  consistencyStatus   String?   @default("UNCHECKED") // UNCHECKED, PENDING_VERIFICATION, VERIFIED, REJECTED
+  consistencyLog      Json?     // Stores diff details or debug info
+
   Assignment      Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
   User            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   ContentApprover User?      @relation("PaperContentApprover", fields: [contentApprovedBy], references: [id])
@@ -188,6 +193,7 @@ model Paper {
   @@index([userId])
   @@index([contentApprovalStatus])
   @@index([finalApprovalStatus])
+  @@index([consistencyStatus])
 }
 
 model PaperTemplate {

@@ -11,6 +11,8 @@ import {
     deleteFinalDocument,
     updateFinalApproval,
     gradePaper,
+    verifyPaper,
+    getPendingVerificationPapers,
 } from '../controllers/paperController.js';
 import { exportPaperToDocx } from '../controllers/paperExportController.js';
 import { downloadChapterPDF } from '../controllers/pdfController.js';
@@ -22,6 +24,7 @@ const router = Router();
 router.use(authenticate);
 
 router.get('/', getAllPapers);
+router.get('/pending-verification', getPendingVerificationPapers); // Must be before /:id
 router.get('/:id', getPaperById);
 router.get('/:id/export-docx', exportPaperToDocx);
 router.get('/:id/chapter/:chapterIndex/pdf', downloadChapterPDF); // Download chapter as PDF
@@ -68,6 +71,7 @@ router.post('/:id/upload-final', upload.single('file'), uploadFinalDocument);
 router.delete('/:id/final-upload', deleteFinalDocument);
 
 router.put('/:id/final-approval', updateFinalApproval);
+router.put('/:id/verify', verifyPaper); // Superadmin verification
 
 router.post('/:id/grade', gradePaper);
 

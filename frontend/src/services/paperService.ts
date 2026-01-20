@@ -29,5 +29,18 @@ export const paperService = {
     async addComment(paperId: string, text: string) {
         const response = await api.post(`/papers/${paperId}/comments`, { text });
         return response.data.comment;
-    },
-};
+    async addComment(paperId: string, text: string) {
+            const response = await api.post(`/papers/${paperId}/comments`, { text });
+            return response.data.comment;
+        },
+
+    async getPendingVerificationPapers() {
+            const response = await api.get('/papers/pending-verification');
+            return response.data.papers;
+        },
+
+    async verifyPaper(id: string, status: 'VERIFIED' | 'REJECTED') {
+            const response = await api.put(`/papers/${id}/verify`, { status });
+            return response.data;
+        },
+    };

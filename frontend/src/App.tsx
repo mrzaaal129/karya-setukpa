@@ -49,6 +49,8 @@ import CollaboraDemo from './pages/CollaboraDemo';
 import AdminManagement from './pages/admin/AdminManagement';
 import AssignmentManagement from './pages/AssignmentManagement';
 import ViolationManagement from './pages/ViolationManagement';
+import VerificationDashboard from './pages/VerificationDashboard';
+
 
 const EditorWithKey: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -166,7 +168,12 @@ const App: React.FC = () => {
                   <Route path="/super-admin/create-assignment" element={<CreateAssignment />} />
                   <Route path="/super-admin/assignments" element={<AssignmentManagement />} />
                   <Route path="/super-admin/assignments/edit/:id" element={<CreateAssignment />} />
+
+                  {/* Verification Dashboard */}
+                  <Route path="/super-admin/verification" element={<VerificationDashboard />} />
+
                   <Route path="/admin/assignments/edit/:id" element={<CreateAssignment />} />
+
                 </Route>
               </Routes>
             </AssignmentProvider>

@@ -92,6 +92,7 @@ const Sidebar: React.FC = () => {
                         <NavItem to="/admin/examiners" icon={ClipboardCheckIcon} label="Penguji" />
                         <NavItem to="/super-admin/advisor-assignment" icon={UserGroupIcon} label="Penugasan Pembimbing" />
                         <NavItem to="/super-admin/examiner-assignment" icon={ClipboardCheckIcon} label="Penugasan Penguji" />
+                        <NavItem to="/super-admin/verification" icon={ShieldExclamationIcon} label="Verifikasi Integritas" />
                         <NavItem to="/violations" icon={ShieldExclamationIcon} label="Pelanggaran Siswa" />
                         <NavItem to="/users/admin" icon={ShieldExclamationIcon} label="Admin" />
 
