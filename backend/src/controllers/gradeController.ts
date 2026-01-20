@@ -258,58 +258,59 @@ export const updateGrade = async (req: AuthRequest, res: Response): Promise<void
 
 export const getAllGrades = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
+        // Safe fetch with minimized complexity
         const papers = await prisma.paper.findMany({
             where: req.user?.role === 'HELPER' ? {} : {
+                // Return all papers that have SOME activity to avoid return 2000 empty rows
                 OR: [
                     { grade: { not: null } },
-                    { Grade: { isNot: null } }
+                    { Grade: { isNot: null } },
+                    { contentApprovalStatus: 'APPROVED' }, // Also include approved papers
+                    { finalApprovalStatus: 'APPROVED' }
                 ]
             },
             include: {
                 User: {
                     select: {
+                        id: true,
                         name: true,
                         nosis: true,
-                        User: { // Helper/Pembimbing relation (Advisor)
-                            select: { name: true }
-                        },
-                        ExaminerAssignment_ExaminerAssignment_studentIdToUser: { // Examiner Assignments
-                            include: {
-                                User_ExaminerAssignment_examinerIdToUser: { // Get Examiner User details
-                                    select: { name: true }
-                                }
-                            }
-                        }
+                        batchId: true,
+                        User: { select: { name: true } } // Advisor info
                     }
                 },
                 Grade: {
-                    include: {
-                        User: { select: { name: true } } // Advisor (if linked here)
-                    }
+                    select: { finalScore: true, updatedAt: true }
                 },
-                Comment: { // Fetch grading comments to get exact dates
-                    where: {
-                        text: { contains: '[NILAI:' }
-                    },
+                Comment: {
+                    where: { text: { contains: '[NILAI:' } },
                     orderBy: { createdAt: 'desc' },
                     take: 1
                 }
             },
             orderBy: { updatedAt: 'desc' },
+            take: 200 // Limit for safety
         });
 
-        const formattedGrades = papers.map((paper: any) => {
+        // Loop to fetch examiners in parallel (avoiding complex single query that might crash)
+        const formattedGrades = await Promise.all(papers.map(async (paper: any) => {
             const score = paper.grade ?? paper.Grade?.finalScore ?? 0;
-            const advisorName = paper.Grade?.User?.name || paper.User?.User?.name || 'Unassigned';
+            const advisorName = paper.User?.User?.name || 'Unassigned';
 
-            // Get Examiner Name (assuming 1 examiner per student for now, or join them)
-            const examiners = paper.User?.ExaminerAssignment_ExaminerAssignment_studentIdToUser || [];
-            const examinerName = examiners.length > 0
-                ? examiners.map((ea: any) => ea.User_ExaminerAssignment_examinerIdToUser?.name).join(', ')
-                : '-';
+            // Manually fetch Examiner for this student (safer than deep relation)
+            let examinerName = '-';
+            try {
+                if (paper.User?.id) {
+                    const examinerAssignment = await prisma.examinerAssignment.findFirst({
+                        where: { studentId: paper.User.id },
+                        include: { User_ExaminerAssignment_examinerIdToUser: { select: { name: true } } }
+                    });
+                    if (examinerAssignment?.User_ExaminerAssignment_examinerIdToUser?.name) {
+                        examinerName = examinerAssignment.User_ExaminerAssignment_examinerIdToUser.name;
+                    }
+                }
+            } catch (err) { }
 
-            // Determine date: use grading comment date if available, else updated at
-            // If score is 0/null, date isn't really relevant, but we keep updatedAt as fallback
             const gradedAt = paper.Comment.length > 0
                 ? paper.Comment[0].createdAt
                 : paper.updatedAt;
@@ -324,7 +325,7 @@ export const getAllGrades = async (req: AuthRequest, res: Response): Promise<voi
                 finalScore: score,
                 updatedAt: gradedAt
             };
-        });
+        }));
 
         res.json(formattedGrades);
     } catch (error) {
