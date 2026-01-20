@@ -294,37 +294,53 @@ export const getAllGrades = async (req: AuthRequest, res: Response): Promise<voi
 
         // Loop to fetch examiners in parallel (avoiding complex single query that might crash)
         const formattedGrades = await Promise.all(papers.map(async (paper: any) => {
-            const score = paper.grade ?? paper.Grade?.finalScore ?? 0;
-            const advisorName = paper.User?.User?.name || 'Unassigned';
-
-            // Manually fetch Examiner for this student (safer than deep relation)
-            let examinerName = '-';
             try {
-                if (paper.User?.id) {
-                    const examinerAssignment = await prisma.examinerAssignment.findFirst({
-                        where: { studentId: paper.User.id },
-                        include: { User_ExaminerAssignment_examinerIdToUser: { select: { name: true } } }
-                    });
-                    if (examinerAssignment?.User_ExaminerAssignment_examinerIdToUser?.name) {
-                        examinerName = examinerAssignment.User_ExaminerAssignment_examinerIdToUser.name;
+                const score = paper.grade ?? paper.Grade?.finalScore ?? 0;
+                const advisorName = paper.User?.User?.name || 'Unassigned';
+
+                // Manually fetch Examiner for this student (safer than deep relation)
+                let examinerName = '-';
+                try {
+                    if (paper.User?.id) {
+                        const examinerAssignment = await prisma.examinerAssignment.findFirst({
+                            where: { studentId: paper.User.id },
+                            include: { User_ExaminerAssignment_examinerIdToUser: { select: { name: true } } }
+                        });
+                        if (examinerAssignment?.User_ExaminerAssignment_examinerIdToUser?.name) {
+                            examinerName = examinerAssignment.User_ExaminerAssignment_examinerIdToUser.name;
+                        }
                     }
+                } catch (err) { }
+
+                // Safe date handling
+                let gradedAt = paper.updatedAt;
+                if (paper.Comment && paper.Comment.length > 0) {
+                    gradedAt = paper.Comment[0].createdAt;
                 }
-            } catch (err) { }
 
-            const gradedAt = paper.Comment.length > 0
-                ? paper.Comment[0].createdAt
-                : paper.updatedAt;
-
-            return {
-                id: paper.id,
-                studentName: paper.User?.name || 'Unknown',
-                studentId: paper.User?.nosis || 'N/A',
-                paperTitle: paper.title,
-                advisorName: advisorName,
-                examinerName: examinerName,
-                finalScore: score,
-                updatedAt: gradedAt
-            };
+                return {
+                    id: paper.id,
+                    studentName: paper.User?.name || 'Unknown',
+                    studentId: paper.User?.nosis || 'N/A',
+                    paperTitle: paper.title || 'Untitled',
+                    advisorName: advisorName,
+                    examinerName: examinerName,
+                    finalScore: score,
+                    updatedAt: gradedAt
+                };
+            } catch (innerError) {
+                console.error(`Error processing paper ${paper.id}:`, innerError);
+                return {
+                    id: paper.id,
+                    studentName: 'Error Loading',
+                    studentId: 'ERR',
+                    paperTitle: 'Error',
+                    advisorName: '-',
+                    examinerName: '-',
+                    finalScore: 0,
+                    updatedAt: new Date()
+                };
+            }
         }));
 
         res.json(formattedGrades);
