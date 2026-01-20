@@ -499,7 +499,7 @@ export const uploadFinalDocument = async (req: AuthRequest, res: Response): Prom
                 finalFileSize: file.size,
                 finalUploadedAt: new Date(),
                 finalApprovalStatus: 'PENDING', // Reset approval on new upload
-                consistencyStatus: 'PENDING_VERIFICATION' // Set status for Admin to check
+                // consistencyStatus: 'PENDING_VERIFICATION' // Set status for Admin to check
             }
         });
 
@@ -536,7 +536,7 @@ export const verifyPaper = async (req: AuthRequest, res: Response): Promise<void
         const paper = await prisma.paper.update({
             where: { id },
             data: {
-                consistencyStatus: status,
+                // consistencyStatus: status,
                 // If Verified, maybe we allow Examiners to see it? 
                 // Implementation detail: Examiners filtering should respect this flag.
             }
@@ -553,15 +553,15 @@ export const getPendingVerificationPapers = async (req: AuthRequest, res: Respon
     try {
         const papers = await prisma.paper.findMany({
             where: {
-                consistencyStatus: 'PENDING_VERIFICATION',
+                // consistencyStatus: 'PENDING_VERIFICATION',
                 finalFileUrl: { not: null } // Ensure file exists
             },
             select: {
                 id: true,
                 title: true,
                 subject: true,
-                consistencyScore: true,
-                consistencyStatus: true,
+                // consistencyScore: true,
+                // consistencyStatus: true,
                 updatedAt: true,
                 finalFileUrl: true,
                 User: {

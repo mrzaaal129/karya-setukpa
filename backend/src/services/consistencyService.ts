@@ -119,10 +119,10 @@ export class ConsistencyService {
             // Fallback: If check fails, don't block upload, just mark as UNCHECKED or Error
             // But rethrow so controller knows? Or silent fail? 
             // Let's create a fail state in DB if possible, or just rethrow.
-            await prisma.paper.update({
-                where: { id: paperId },
-                data: { consistencyStatus: 'ERROR_CHECKING' }
-            });
+            // await prisma.paper.update({
+            //     where: { id: paperId },
+            //     data: { consistencyStatus: 'ERROR_CHECKING' }
+            // });
             throw error;
         }
     }
