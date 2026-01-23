@@ -134,13 +134,24 @@ const VerificationDashboard: React.FC = () => {
                                         )}
                                     </td>
                                     <td className="p-4 border-b text-center">
-                                        <div className={`text-lg ${getScoreColor(paper.consistencyScore)}`}>
-                                            {paper.consistencyScore !== null ? `${paper.consistencyScore}%` : 'N/A'}
-                                        </div>
-                                        {paper.consistencyScore !== null && paper.consistencyScore < minRequiredScore && (
-                                            <div className="text-xs text-red-500 mt-1 flex items-center justify-center gap-1">
-                                                <AlertTriangle size={12} /> Mencurigakan
+                                        {paper.consistencyStatus === 'CHECK_ERROR' ? (
+                                            <div className="flex flex-col items-center">
+                                                <span className="bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-red-400">
+                                                    SYSTEM ERROR
+                                                </span>
+                                                <span className="text-[10px] text-gray-500 mt-1">Cek log detail</span>
                                             </div>
+                                        ) : (
+                                            <>
+                                                <div className={`text-lg ${getScoreColor(paper.consistencyScore)}`}>
+                                                    {paper.consistencyScore !== null ? `${paper.consistencyScore}%` : 'N/A'}
+                                                </div>
+                                                {paper.consistencyScore !== null && paper.consistencyScore < minRequiredScore && (
+                                                    <div className="text-xs text-red-500 mt-1 flex items-center justify-center gap-1">
+                                                        <AlertTriangle size={12} /> Mencurigakan
+                                                    </div>
+                                                )}
+                                            </>
                                         )}
                                     </td>
                                     <td className="p-4 border-b text-center">

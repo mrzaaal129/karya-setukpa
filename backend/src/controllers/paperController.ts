@@ -584,7 +584,7 @@ export const getPendingVerificationPapers = async (req: AuthRequest, res: Respon
     try {
         const papers = await prisma.paper.findMany({
             where: {
-                consistencyStatus: 'PENDING_VERIFICATION',
+                consistencyStatus: { in: ['PENDING_VERIFICATION', 'CHECK_ERROR'] },
                 finalFileUrl: { not: null } // Ensure file exists
             },
             select: {
