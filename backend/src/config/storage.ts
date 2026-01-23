@@ -4,10 +4,16 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_ANON_KEY || '';
+// Prioritize Service Role Key for backend operations (bypasses RLS)
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
 
 if (!supabaseUrl || !supabaseKey) {
-    console.warn('⚠️ Supabase URL or Anon Key is missing. Storage functionality will not work.');
+    console.warn('⚠️ Supabase URL or Key is missing. Storage functionality will not work.');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+    auth: {
+        persistSession: false, // Backend doesn't need session persistence
+        autoRefreshToken: false,
+    }
+});
