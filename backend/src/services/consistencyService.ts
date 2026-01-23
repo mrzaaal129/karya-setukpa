@@ -13,6 +13,7 @@ if (typeof pdf !== 'function') {
     console.error('Failed to initialize pdf-parse. Module:', pdfModule);
 }
 import stringSimilarity from 'string-similarity';
+import sanitizeHtml from 'sanitize-html';
 import { Paper } from '@prisma/client';
 
 export class ConsistencyService {
@@ -194,11 +195,18 @@ export class ConsistencyService {
         }
     }
 
-    /**
-     * Helper to strip HTML tags from editor content.
-     */
+    // Helper to strip HTML tags from editor content.
     stripHtml(html: string): string {
-        return html.replace(/<[^>]*>?/gm, ' '); // Replace tags with space to avoid merging words
+        try {
+            return sanitizeHtml(html, {
+                allowedTags: [], // Remove all tags
+                allowedAttributes: {}, // Remove all attributes
+                textFilter: (text) => text + ' ' // Ensure space between block elements
+            });
+        } catch (e) {
+            // Fallback to regex if sanitizer fails
+            return html.replace(/<[^>]*>?/gm, ' ');
+        }
     }
 }
 
