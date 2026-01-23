@@ -225,7 +225,7 @@ const GhostDashboard: React.FC = () => {
                                     </div>
 
                                     <button
-                                        onClick={() => window.open(`#/student/paper/${item.id}`, '_blank')}
+                                        onClick={() => navigate(`/student/paper/${item.id}`)}
                                         className="w-full py-3 bg-white border-2 border-indigo-600 text-indigo-700 font-bold rounded-xl flex items-center justify-center gap-2 group-hover:bg-indigo-600 group-hover:text-white transition-all transform group-hover:scale-[1.02] active:scale-95"
                                     >
                                         <Ghost size={18} />
@@ -267,7 +267,7 @@ const GhostDashboard: React.FC = () => {
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <button
-                                                    onClick={() => window.open(`#/student/paper/${item.id}`, '_blank')}
+                                                    onClick={() => navigate(`/student/paper/${item.id}`)}
                                                     className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700 transition shadow-sm opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0"
                                                 >
                                                     <Ghost size={14} /> Edit
