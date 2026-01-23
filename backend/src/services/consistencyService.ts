@@ -118,7 +118,8 @@ export class ConsistencyService {
     aggressiveNormalize(text: string): string {
         return text
             .toLowerCase()
-            .replace(/[^a-z0-9\s]/g, '') // Remove punctuation/symbols
+            .replace(/[^a-z0-9\s]/g, ' ') // Replace symbols with space to avoid merging e.g. "word1.word2" -> "word1 word2"
+            .replace(/\b\d+\b/g, ' ') // Remove standalone numbers (page numbers, dates, references)
             .replace(/\s+/g, ' ')
             .trim();
     }
