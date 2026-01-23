@@ -86,7 +86,8 @@ export class ConsistencyService {
         const cleanTarget = this.aggressiveNormalize(target);
 
         // 2. Generate N-grams (Shingles) from Source
-        const N = 10; // 10-word sequences
+        // Lowering N to 3 makes it very robust for 'mostly same' content
+        const N = 3;
         const sourceWords = cleanSource.split(' ').filter(w => w.length > 0);
 
         if (sourceWords.length < N) {
