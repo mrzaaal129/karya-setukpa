@@ -26,9 +26,9 @@ export class ConsistencyService {
             } else {
                 throw new Error(`Unsupported file type: ${mimetype}. Only PDF and DOCX are supported.`);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error in extractText:', error);
-            throw new Error('Failed to extract text from file.');
+            throw new Error(`Failed to extract text from file: ${error.message || error}`);
         }
     }
 
@@ -170,7 +170,12 @@ export class ConsistencyService {
                             editorLength: 0,
                             fileLength: 0,
                             score: 0,
-                            debug: [`SYSTEM ERROR: ${error.message || error}`]
+                            debug: [
+                                `SYSTEM ERROR: ${error.message || error}`,
+                                // @ts-ignore
+                                `Input Buffer: ${fileBuffer ? fileBuffer.length : 'null'} bytes`,
+                                `Mimetype: ${mimetype}`
+                            ]
                         }
                     }
                 });
