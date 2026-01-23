@@ -195,7 +195,7 @@ const SystemSettings: React.FC = () => {
         </div>
 
         {/* Settings Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8">
 
           {/* CARD 1: ACADEMIC */}
           <SettingsCard
@@ -214,21 +214,18 @@ const SystemSettings: React.FC = () => {
                 color="blue"
               />
               <InputGroup
-                label="Batas Plagiarisme"
-                desc="Maksimal toleransi."
+                label="Verifikasi Integritas"
+                desc="Batas skor untuk konsistensi dokumen."
                 value={localMaxPlagiarismScore}
                 onChange={setLocalMaxPlagiarismScore}
                 suffix="%"
-                color="orange"
+                color="green"
               />
             </div>
           </SettingsCard>
 
-          {/* CARD 2: SECURITY - MOVED TO GHOST HELPER DASHBOARD */}
-          {/* Security controls are now managed by Ghost/Helper role */}
-
-          {/* CARD 3: BROADCAST (Full Width on Mobile, Col span 2 on large if needed layout) */}
-          <div className="xl:col-span-2">
+          {/* CARD 2: BROADCAST */}
+          <div>
             <SettingsCard
               title="Pemberitahuan & Broadcast"
               subtitle="Kirim pengumuman massal ke siswa dan dosen."
