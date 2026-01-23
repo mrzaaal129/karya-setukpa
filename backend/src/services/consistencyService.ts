@@ -75,10 +75,9 @@ export class ConsistencyService {
     }
 
     /**
-     * Calculates Containment Score using Advanced Sentence-to-Sentence Fuzzy Matching.
-     * 1. Splits both source and target into sentences.
-     * 2. Filters out short sentences (templates/headers).
-     * 3. Matches source sentences against target sentences with tolerance for typos (Fuzzy).
+     * Calculates Containment Score using Sentence-Level Fuzzy Matching.
+     * This approximates "human reading" by checking if whole sentences exist in the target.
+     * Filters out short phrases (like headers/templates) to focus on content.
      */
     calculateContainmentScore(source: string, target: string): number {
         if (!source || !target) return 0;
@@ -92,7 +91,7 @@ export class ConsistencyService {
                 // Using positive lookbehind or simply split and cleanup
                 .split(/[.!?]+/)
                 .map(s => this.aggressiveNormalize(s)) // Normalize each sentence
-                .filter(s => s.split(' ').length >= 10); // KEEP ONLY LONG SENTENCES (>=10 words) - Explicitly ignores short templates
+                .filter(s => s.split(' ').length >= 10); // KEEP ONLY LONG SENTENCES (>=10 words)
         };
 
         const sourceSentences = getSentences(source);
@@ -193,7 +192,7 @@ export class ConsistencyService {
                             // console.log(`[DEBUG] Ch content length after strip: ${txt.length}`);
                             return txt;
                         })
-                        .join(' ');
+                        .join('. '); // Separator updated to period+space
 
                     log(`[DEBUG] Final Aggregated Editor Text Length: ${editorText.length}`);
                 } else {
