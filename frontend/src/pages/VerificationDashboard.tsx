@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { paperService } from '../services/paperService';
+import { API_URL } from '../services/api';
 import toast from 'react-hot-toast';
 import { CheckCircle, XCircle, AlertTriangle, FileText, Download, Info } from 'lucide-react';
 import { useSystem } from '../contexts/SystemContext';
@@ -126,7 +127,7 @@ const VerificationDashboard: React.FC = () => {
                                     <td className="p-4 border-b text-center">
                                         {paper.finalFileUrl && (
                                             <a
-                                                href={`http://localhost:5000${paper.finalFileUrl}`}
+                                                href={`${API_URL.replace(/\/api$/, '')}${paper.finalFileUrl}`}
                                                 target="_blank"
                                                 rel="noreferrer"
                                                 className="inline-flex items-center gap-1 text-blue-600 hover:underline text-sm"
