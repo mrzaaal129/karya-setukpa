@@ -111,6 +111,24 @@ const CreateTemplate: React.FC = () => {
     setCurrentPageIndex(Math.max(0, Math.min(index, newPages.length - 1)));
   };
 
+  const handleUpdateMinWords = (words: number) => {
+    if (currentPageIndex === -1) return;
+
+    setPages(prev => prev.map((p, idx) => {
+      if (idx !== currentPageIndex) return p;
+
+      // Update Page minWords AND Structure minWords
+      const newStructure = p.structure ? [...p.structure] : [];
+      if (newStructure.length > 0) newStructure[0].minWords = words;
+
+      return { ...p, minWords: words, structure: newStructure };
+    }));
+  };
+
+  // ... (existing code)
+
+
+
   const handlePageContentChange = (content: string) => {
     setPages(prev => prev.map((p, idx) => idx === currentPageIndex ? { ...p, content } : p));
   };
@@ -296,14 +314,30 @@ const CreateTemplate: React.FC = () => {
           {currentPage ? (
             <div className="flex flex-col h-full">
               {/* Chapter Title Bar - Clean & Non-obstructive */}
-              < div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-center z-10 shadow-sm" >
+              < div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between z-10 shadow-sm" >
                 <input
                   type="text"
                   value={currentPage.name}
                   onChange={(e) => handleUpdateChapterTitle(e.target.value)}
-                  className="text-center font-serif font-bold text-xl text-gray-800 border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:ring-0 p-1 placeholder-gray-300 w-full max-w-md bg-transparent transition"
+                  className="flex-1 font-serif font-bold text-xl text-gray-800 border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:ring-0 p-1 placeholder-gray-300 bg-transparent transition"
                   placeholder="JUDUL BAB (Klik untuk edit)"
                 />
+
+                <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200 ml-4">
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                    Min. Kata:
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="50"
+                    value={currentPage.structure?.[0]?.minWords || currentPage.minWords || 0}
+                    onChange={(e) => handleUpdateMinWords(parseInt(e.target.value) || 0)}
+                    className="w-16 text-sm font-bold text-blue-600 bg-transparent border-none focus:ring-0 p-0 text-right outline-none"
+                    placeholder="0"
+                  />
+                  <span className="text-xs text-gray-400">kata</span>
+                </div>
               </div>
 
               {/* Full Editor Area - Matches Student Layout */}
