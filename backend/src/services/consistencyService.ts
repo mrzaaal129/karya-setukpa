@@ -88,11 +88,28 @@ export class ConsistencyService {
             let editorText = this.stripHtml(paper.content || '');
 
             // FIX: If paper.content is empty (new template structure), aggregate from structure chapters
-            if (!editorText.trim() && paper.structure && Array.isArray(paper.structure)) {
-                console.log(`Consistency Check: Aggregating content from ${paper.structure.length} chapters`);
-                editorText = (paper.structure as any[])
-                    .map((ch: any) => this.stripHtml(ch.content || ''))
-                    .join(' ');
+            // FIX: If paper.content is empty (new template structure), aggregate from structure chapters
+            if (!editorText.trim()) {
+                let structure: any[] = [];
+
+                // Robust parsing for structure (handle string or object)
+                if (Array.isArray(paper.structure)) {
+                    structure = paper.structure as any[];
+                } else if (typeof paper.structure === 'string') {
+                    try {
+                        structure = JSON.parse(paper.structure);
+                    } catch (e) {
+                        console.error('Failed to parse paper structure JSON:', e);
+                        structure = [];
+                    }
+                }
+
+                if (structure.length > 0) {
+                    console.log(`Consistency Check: Aggregating content from ${structure.length} chapters`);
+                    editorText = structure
+                        .map((ch: any) => this.stripHtml(ch.content || ''))
+                        .join(' ');
+                }
             }
 
             const score = this.calculateSimilarity(editorText, fileText);
