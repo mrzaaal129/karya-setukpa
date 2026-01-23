@@ -593,6 +593,7 @@ export const getPendingVerificationPapers = async (req: AuthRequest, res: Respon
                 subject: true,
                 consistencyScore: true,
                 consistencyStatus: true,
+                consistencyLog: true, // DEBUG: Include log to check why score is 0
                 updatedAt: true,
                 finalFileUrl: true,
                 User: {

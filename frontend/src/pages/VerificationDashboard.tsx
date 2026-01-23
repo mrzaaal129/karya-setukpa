@@ -113,6 +113,14 @@ const VerificationDashboard: React.FC = () => {
                                     <td className="p-4 border-b max-w-xs truncate" title={paper.title}>
                                         <div className="font-medium text-gray-900">{paper.subject}</div>
                                         <div className="text-sm text-gray-500 truncate">{paper.title}</div>
+                                        {/* DEBUG INFO */}
+                                        {/* @ts-ignore */}
+                                        {paper.consistencyLog && (
+                                            <div className="text-[10px] text-gray-400 mt-1 font-mono">
+                                                {/* @ts-ignore */}
+                                                Edit: {paper.consistencyLog.editorLength} | File: {paper.consistencyLog.fileLength}
+                                            </div>
+                                        )}
                                     </td>
                                     <td className="p-4 border-b text-center">
                                         <div className={`text-lg ${getScoreColor(paper.consistencyScore)}`}>
