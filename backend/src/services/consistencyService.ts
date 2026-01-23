@@ -75,52 +75,53 @@ export class ConsistencyService {
     }
 
     /**
-     * Calculates Containment Score using Sentence-Level Fuzzy Matching.
-     * This approximates "human reading" by checking if whole sentences exist in the target.
-     * Filters out short phrases (like headers/templates) to focus on content.
+     * Calculates Containment Score using Advanced Sentence-to-Sentence Fuzzy Matching.
+     * 1. Splits both source and target into sentences.
+     * 2. Filters out short sentences (templates/headers).
+     * 3. Matches source sentences against target sentences with tolerance for typos (Fuzzy).
      */
     calculateContainmentScore(source: string, target: string): number {
         if (!source || !target) return 0;
 
-        // 1. Normalize but keep sentence structure (periods are important)
-        // We only remove symbols that aren't sentence terminators
-        const cleanSource = source.replace(/[^a-zA-Z0-9\s.]/g, ' ').replace(/\s+/g, ' ').trim();
-        const cleanTarget = this.aggressiveNormalize(target); // Target is fully flattened for searching
+        // 1. Helper to split text into distinct, meaningful sentences
+        const getSentences = (text: string) => {
+            return text
+                .replace(/\r?\n/g, ' ') // Merge lines
+                .replace(/\s+/g, ' ')   // Normalize spaces
+                // Split by common sentence terminators (. ! ?)
+                // Using positive lookbehind or simply split and cleanup
+                .split(/[.!?]+/)
+                .map(s => this.aggressiveNormalize(s)) // Normalize each sentence
+                .filter(s => s.split(' ').length >= 5); // KEEP ONLY LONG SENTENCES (>=5 words)
+        };
 
-        // 2. Split Source into Sentences
-        // Filter out short sentences (< 5 words) which are likely Headers/Template boilerplate
-        const sentences = cleanSource.split('.')
-            .map(s => s.trim())
-            .filter(s => s.split(' ').length >= 5);
+        const sourceSentences = getSentences(source);
+        const targetSentences = getSentences(target);
 
-        if (sentences.length === 0) return 0;
+        if (sourceSentences.length === 0) return 0;
 
-        let matchedSentences = 0;
+        let matchedCount = 0;
 
-        // 3. Check each sentence against the target text
-        for (const sentence of sentences) {
-            // Normalize the sentence to match target format
-            const normalizedSentence = this.aggressiveNormalize(sentence);
+        // 2. Compare each source sentence against ALL target sentences (Fuzzy)
+        for (const srcSentence of sourceSentences) {
+            let isMatch = false;
 
-            // Exact substring check first (Fastest & Most Common for Copy-Paste)
-            if (cleanTarget.includes(normalizedSentence)) {
-                matchedSentences++;
-                continue;
+            // Fuzzy Check against Target Sentences
+            for (const tgtSentence of targetSentences) {
+                // Similarity Check
+                const similarity = stringSimilarity.compareTwoStrings(srcSentence, tgtSentence);
+
+                // Threshold 0.85 allows for minor typos or 1-2 word differences/inserts
+                if (similarity > 0.85) {
+                    isMatch = true;
+                    break; // Found a match, move to next source sentence
+                }
             }
 
-            // If not found exact, it might be due to minor typo or PDF extraction artifact.
-            // We can try to find if ~90% of the words in the sentence appear sequentially?
-            // For performance, let's stick to containment for now.
-            // If the user editing 'sentence A' slightly, it might fail strict inclusion.
-            // But let's assume 'Integrity' means exact copy check. 
-            // If stricter check is needed, we do N-gram on the sentence itself.
-
-            // RELAXATION: Check if 80% of words in sentence exist as a block in target?
-            // Actually, let's just stick to exact normalized substring for speed & strictness.
-            // Typos in verification are usually penalized, which is fair. 
+            if (isMatch) matchedCount++;
         }
 
-        const score = (matchedSentences / sentences.length) * 100;
+        const score = (matchedCount / sourceSentences.length) * 100;
         return parseFloat(score.toFixed(2));
     }
 
