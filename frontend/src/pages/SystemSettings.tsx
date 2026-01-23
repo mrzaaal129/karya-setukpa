@@ -225,136 +225,132 @@ const SystemSettings: React.FC = () => {
           </SettingsCard>
 
           {/* CARD 2: BROADCAST */}
-          <div>
-            <SettingsCard
-              title="Pemberitahuan & Broadcast"
-              subtitle="Kirim pengumuman massal ke siswa dan dosen."
-              icon={<Globe size={24} />}
-              theme="pink"
-            >
-              <div className="flex flex-col md:flex-row gap-6">
-                <div className="flex-1">
-                  <div className="bg-pink-50 border border-pink-100 rounded-xl p-4 mb-4">
-                    <h4 className="font-bold text-pink-800 flex items-center gap-2 mb-1">
-                      <Bell size={16} />
-                      Pusat Notifikasi
-                    </h4>
-                    <p className="text-xs text-pink-700 leading-relaxed">
-                      Pesan akan muncul sebagai pop-up notifikasi dan tersimpan di riwayat (Lonceng). Target "Siswa" juga mengupdate banner dashboard.
-                    </p>
+          <SettingsCard
+            title="Pemberitahuan & Broadcast"
+            subtitle="Kirim pengumuman massal ke siswa dan dosen."
+            icon={<Globe size={24} />}
+            theme="pink"
+          >
+            <div className="flex flex-col md:flex-row gap-6">
+              <div className="flex-1">
+                <div className="bg-pink-50 border border-pink-100 rounded-xl p-4 mb-4">
+                  <h4 className="font-bold text-pink-800 flex items-center gap-2 mb-1">
+                    <Bell size={16} />
+                    Pusat Notifikasi
+                  </h4>
+                  <p className="text-xs text-pink-700 leading-relaxed">
+                    Pesan akan muncul sebagai pop-up notifikasi dan tersimpan di riwayat (Lonceng). Target "Siswa" juga mengupdate banner dashboard.
+                  </p>
+                </div>
+                <textarea
+                  value={localAnnouncement}
+                  onChange={(e) => setLocalAnnouncement(e.target.value)}
+                  className="w-full h-32 px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-pink-200 text-gray-700 placeholder-gray-400 resize-none font-medium mb-4"
+                  placeholder="Tulis pesan pengumuman di sini..."
+                />
+              </div>
+
+              <div className="w-full md:w-72 flex flex-col gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Target Penerima</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {['ALL', 'SISWA', 'PEMBIMBING', 'PENGUJI'].map((role) => (
+                      <button
+                        key={role}
+                        onClick={() => setBroadcastTarget(role)}
+                        className={`py-2 px-3 rounded-lg text-xs font-bold border transition-all ${broadcastTarget === role
+                          ? 'bg-pink-600 text-white border-pink-600 shadow-md'
+                          : 'bg-white text-gray-500 border-gray-100 hover:bg-gray-50'
+                          }`}
+                      >
+                        {role === 'ALL' ? 'SEMUA' : role}
+                      </button>
+                    ))}
                   </div>
-                  <textarea
-                    value={localAnnouncement}
-                    onChange={(e) => setLocalAnnouncement(e.target.value)}
-                    className="w-full h-32 px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-pink-200 text-gray-700 placeholder-gray-400 resize-none font-medium mb-4"
-                    placeholder="Tulis pesan pengumuman di sini..."
-                  />
                 </div>
 
-                <div className="w-full md:w-72 flex flex-col gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Target Penerima</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {['ALL', 'SISWA', 'PEMBIMBING', 'PENGUJI'].map((role) => (
-                        <button
-                          key={role}
-                          onClick={() => setBroadcastTarget(role)}
-                          className={`py-2 px-3 rounded-lg text-xs font-bold border transition-all ${broadcastTarget === role
-                            ? 'bg-pink-600 text-white border-pink-600 shadow-md'
-                            : 'bg-white text-gray-500 border-gray-100 hover:bg-gray-50'
-                            }`}
-                        >
-                          {role === 'ALL' ? 'SEMUA' : role}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
 
-
-                  <div className="flex gap-2 mt-auto w-full">
-                    <button
-                      onClick={handleRetract}
-                      className="flex-1 py-3 bg-white text-slate-700 border border-slate-200 rounded-xl font-bold shadow-sm hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
-                      title="Hapus pengumuman aktif"
-                    >
-                      <Bell size={18} className="text-slate-400" />
-                      <span className="text-xs">Tarik Pesan</span>
-                    </button>
-                    <button
-                      onClick={handleBroadcast}
-                      className="flex-[2] py-3 bg-slate-900 text-white rounded-xl font-bold shadow-lg hover:bg-black transition-all flex items-center justify-center gap-2"
-                    >
-                      <Bell size={18} />
-                      Kirim
-                    </button>
-                  </div>
+                <div className="flex gap-2 mt-auto w-full">
+                  <button
+                    onClick={handleRetract}
+                    className="flex-1 py-3 bg-white text-slate-700 border border-slate-200 rounded-xl font-bold shadow-sm hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
+                    title="Hapus pengumuman aktif"
+                  >
+                    <Bell size={18} className="text-slate-400" />
+                    <span className="text-xs">Tarik Pesan</span>
+                  </button>
+                  <button
+                    onClick={handleBroadcast}
+                    className="flex-[2] py-3 bg-slate-900 text-white rounded-xl font-bold shadow-lg hover:bg-black transition-all flex items-center justify-center gap-2"
+                  >
+                    <Bell size={18} />
+                    Kirim
+                  </button>
                 </div>
               </div>
-            </SettingsCard>
-          </div>
+            </div>
+          </SettingsCard>
 
-          {/* CARD 4: HISTORY */}
-          <div className="xl:col-span-2">
-            <SettingsCard
-              title="Riwayat Pengumuman"
-              subtitle="Arsip pengumuman yang pernah disiarkan."
-              icon={<Clock size={24} />}
-              theme="gray"
-            >
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
-                      <th className="py-3 pl-2">Tanggal</th>
-                      <th className="py-3">Pesan</th>
-                      <th className="py-3">Target</th>
-                      <th className="py-3">Oleh</th>
-                      <th className="py-3 pr-2 text-right">Aksi</th>
+          {/* CARD 3: HISTORY */}
+          <SettingsCard
+            title="Riwayat Pengumuman"
+            subtitle="Arsip pengumuman yang pernah disiarkan."
+            icon={<Clock size={24} />}
+            theme="gray"
+          >
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
+                    <th className="py-3 pl-2">Tanggal</th>
+                    <th className="py-3">Pesan</th>
+                    <th className="py-3">Target</th>
+                    <th className="py-3">Oleh</th>
+                    <th className="py-3 pr-2 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="text-sm font-medium text-gray-600">
+                  {announcements.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-8 text-center text-gray-400 italic">
+                        Belum ada riwayat pengumuman.
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="text-sm font-medium text-gray-600">
-                    {announcements.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="py-8 text-center text-gray-400 italic">
-                          Belum ada riwayat pengumuman.
+                  ) : (
+                    announcements.map((item) => (
+                      <tr key={item.id} className="group border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                        <td className="py-4 pl-2 text-gray-500 whitespace-nowrap">
+                          {new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </td>
+                        <td className="py-4 max-w-lg truncate pr-4 text-gray-800" title={item.content}>
+                          {item.content}
+                        </td>
+                        <td className="py-4">
+                          <span className={`px-2 py-1 rounded text-xs font-bold ${item.target === 'ALL' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
+                            {item.target === 'ALL' ? 'SEMUA' : item.target}
+                          </span>
+                        </td>
+                        <td className="py-4 text-gray-500">
+                          {item.Admin?.name || 'Sistem'}
+                        </td>
+                        <td className="py-4 pr-2 text-right">
+                          <button
+                            onClick={() => handleDeleteHistory(item.id)}
+                            className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
+                            title="Hapus dari riwayat"
+                          >
+                            <div className="w-4 h-4">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
+                            </div>
+                          </button>
                         </td>
                       </tr>
-                    ) : (
-                      announcements.map((item) => (
-                        <tr key={item.id} className="group border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                          <td className="py-4 pl-2 text-gray-500 whitespace-nowrap">
-                            {new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                          </td>
-                          <td className="py-4 max-w-lg truncate pr-4 text-gray-800" title={item.content}>
-                            {item.content}
-                          </td>
-                          <td className="py-4">
-                            <span className={`px-2 py-1 rounded text-xs font-bold ${item.target === 'ALL' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
-                              {item.target === 'ALL' ? 'SEMUA' : item.target}
-                            </span>
-                          </td>
-                          <td className="py-4 text-gray-500">
-                            {item.Admin?.name || 'Sistem'}
-                          </td>
-                          <td className="py-4 pr-2 text-right">
-                            <button
-                              onClick={() => handleDeleteHistory(item.id)}
-                              className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
-                              title="Hapus dari riwayat"
-                            >
-                              <div className="w-4 h-4">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
-                              </div>
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </SettingsCard>
-          </div>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </SettingsCard>
 
         </div>
 
