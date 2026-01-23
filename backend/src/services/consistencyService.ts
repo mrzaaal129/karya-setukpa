@@ -12,7 +12,7 @@ if (typeof pdf !== 'function' && typeof pdf.default === 'function') {
 if (typeof pdf !== 'function') {
     console.error('Failed to initialize pdf-parse. Module:', pdfModule);
 }
-import stringSimilarity from 'string-similarity';
+// import stringSimilarity from 'string-similarity'; // Removed for Strict Mode
 import sanitizeHtml from 'sanitize-html';
 import { Paper } from '@prisma/client';
 
@@ -63,21 +63,21 @@ export class ConsistencyService {
             return 0; // Cannot compare empty texts
         }
 
-        // Use Dice coefficient from string-similarity library
-        const diceScore = parseFloat((stringSimilarity.compareTwoStrings(normalized1, normalized2) * 100).toFixed(2));
+        // Use Dice coefficient? NO. STRICT MODE logic only.
+        // We only rely on Containment Score now to ensure 0% on fraud.
+        // But to pass 'types', let's keep a basic check or just use containment as primary.
 
-        // Calculate Containment Score (How much of Text1 is inside Text2)
-        // This handles cases where Text2 (PDF) has extra content like Cover/Appendix
+        // Strategy: Strict Containment is the boss.
         const containmentScore = this.calculateContainmentScore(normalized1, normalized2);
 
-        // Return the higher of the two scores
-        return Math.max(diceScore, containmentScore);
+        return containmentScore;
     }
 
     /**
-     * Calculates Containment Score using Sentence-Level Fuzzy Matching.
-     * This approximates "human reading" by checking if whole sentences exist in the target.
-     * Filters out short phrases (like headers/templates) to focus on content.
+     * Calculates Containment Score using STRICT EXACT MATCHING.
+     * 1. Splits both source and target into sentences.
+     * 2. Filters out EVERYTHING except long analytical sentences (> 20 words).
+     * 3. Matches EXACTLY. No typo tolerance.
      */
     calculateContainmentScore(source: string, target: string): number {
         if (!source || !target) return 0;
@@ -87,37 +87,29 @@ export class ConsistencyService {
             return text
                 .replace(/\r?\n/g, ' ') // Merge lines
                 .replace(/\s+/g, ' ')   // Normalize spaces
-                // Split by common sentence terminators (. ! ?)
-                // Using positive lookbehind or simply split and cleanup
-                .split(/[.!?]+/)
+                // Split by periods to act as sentence boundaries
+                .split(/[.]/)
                 .map(s => this.aggressiveNormalize(s)) // Normalize each sentence
-                .filter(s => s.split(' ').length >= 10); // KEEP ONLY LONG SENTENCES (>=10 words)
+                // AGGRESSIVE FILTER: Only keep sentences with >= 20 words.
+                // This removes ALL titles, headers, standard intro phrases, and fluff.
+                .filter(s => s.split(' ').length >= 20);
         };
 
         const sourceSentences = getSentences(source);
-        const targetSentences = getSentences(target);
+        // Optimize target: just keep it as one big normalized string for fast substring search
+        const cleanTarget = this.aggressiveNormalize(target);
 
         if (sourceSentences.length === 0) return 0;
 
         let matchedCount = 0;
 
-        // 2. Compare each source sentence against ALL target sentences (Fuzzy)
+        // 2. Strict Check for each Source Sentence
         for (const srcSentence of sourceSentences) {
-            let isMatch = false;
-
-            // Fuzzy Check against Target Sentences
-            for (const tgtSentence of targetSentences) {
-                // Similarity Check
-                const similarity = stringSimilarity.compareTwoStrings(srcSentence, tgtSentence);
-
-                // Threshold 0.85 allows for minor typos or 1-2 word differences/inserts
-                if (similarity > 0.85) {
-                    isMatch = true;
-                    break; // Found a match, move to next source sentence
-                }
+            // STRICT: Must be contained EXACTLY in the target text.
+            // Typo = Fail.
+            if (cleanTarget.includes(srcSentence)) {
+                matchedCount++;
             }
-
-            if (isMatch) matchedCount++;
         }
 
         const score = (matchedCount / sourceSentences.length) * 100;
@@ -127,18 +119,14 @@ export class ConsistencyService {
     aggressiveNormalize(text: string): string {
         return text
             .toLowerCase()
-            .replace(/[^a-z0-9\s]/g, ' ') // Replace symbols with space to avoid merging e.g. "word1.word2" -> "word1 word2"
-            .replace(/\b\d+\b/g, ' ') // Remove standalone numbers (page numbers, dates, references)
+            .replace(/[^a-z0-9\s]/g, ' ') // Replace symbols with space to avoid merging
+            .replace(/\b\d+\b/g, ' ') // Remove standalone numbers
             .replace(/\s+/g, ' ')
             .trim();
     }
 
     /**
      * Orchestrates the consistency check workflow.
-     * 1. Fetches Paper from DB (to get Editor content).
-     * 2. Extracts text from the uploaded file.
-     * 3. Compares and calculates score.
-     * 4. Updates Paper with score and status (PENDING_VERIFICATION).
      */
     async performConsistencyCheck(paperId: string, fileBuffer: Buffer, mimetype: string): Promise<Paper> {
         try {
@@ -161,15 +149,11 @@ export class ConsistencyService {
             };
 
             // 3. Normalize and Compare
-            // Editor content might be HTML (Rich Text), need to strip tags potentially?
-            // Assuming 'content' field in Paper is HTML from Tiptap/TinyMCE.
             let editorText = this.stripHtml(paper.content || '');
 
-            // FIX: If paper.content is empty (new template structure), aggregate from structure chapters
+            // Aggregate structure if empty
             if (!editorText.trim()) {
                 let structure: any[] = [];
-
-                // Robust parsing for structure (handle string or object)
                 if (Array.isArray(paper.structure)) {
                     structure = paper.structure as any[];
                 } else if (typeof paper.structure === 'string') {
@@ -182,35 +166,19 @@ export class ConsistencyService {
                 }
 
                 if (structure.length > 0) {
-                    log(`[DEBUG] Consistency Check: Found ${structure.length} chapters.`);
-                    // Log first chapter content presence
-                    log(`[DEBUG] Ch 1 content type: ${typeof structure[0].content}, Length: ${structure[0].content?.length}`);
-
                     editorText = structure
                         .map((ch: any) => {
                             const txt = this.stripHtml(ch.content || '');
-                            // console.log(`[DEBUG] Ch content length after strip: ${txt.length}`);
                             return txt;
                         })
-                        .join('. '); // Separator updated to period+space
-
-                    log(`[DEBUG] Final Aggregated Editor Text Length: ${editorText.length}`);
-                } else {
-                    log('[DEBUG] Structure is empty array.');
+                        .join('. '); // Separator for sentence isolation
                 }
-            } else {
-                log(`[DEBUG] Using main paper content (Length: ${editorText.length})`);
             }
 
             const score = this.calculateSimilarity(editorText, fileText);
-            log(`Consistency Check for Paper ${paperId}: Score ${score}% (Editor: ${editorText.length} vs File: ${fileText.length})`);
+            log(`Consistency Check for Paper ${paperId}: Score ${score}%`);
 
-            // Determine Status
-            // If score is very high (e.g. >90%), maybe ideally auto-verify? 
-            // But for now, we set PENDING_VERIFICATION for Superadmin to see.
-            let status = 'PENDING_VERIFICATION';
-
-            // 4. Update Database with consistency check results
+            // 4. Update Database
             const updatedPaper = await prisma.paper.update({
                 where: { id: paperId },
                 data: {
@@ -230,8 +198,7 @@ export class ConsistencyService {
 
         } catch (error: any) {
             console.error('Error in performConsistencyCheck:', error);
-
-            // Log error to DB so we can debug in frontend
+            // Error logging logic remains same...
             try {
                 await prisma.paper.update({
                     where: { id: paperId },
@@ -254,7 +221,6 @@ export class ConsistencyService {
             } catch (dbError) {
                 console.error('Failed to log error to DB:', dbError);
             }
-
             throw error;
         }
     }
