@@ -101,7 +101,7 @@ const AdvisorReview: React.FC = () => {
                         <div>
                             <h1 className="text-lg font-bold text-slate-800 leading-tight hidden md:block">{paper.title}</h1>
                             <p className="text-xs text-slate-500 font-medium flex items-center gap-2">
-                                <User size={12} /> {paper.User?.name} • <span className="font-mono">{paper.User?.nosis}</span>
+                                <User size={12} /> Siswa (Blind Review) • <span className="font-mono">***</span>
                             </p>
                         </div>
                     </div>

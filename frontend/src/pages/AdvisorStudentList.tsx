@@ -66,8 +66,11 @@ const AdvisorStudentList: React.FC = () => {
     });
 
     const filteredData = flattenedData.filter(({ student, paper }) => {
-        const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            student.nosis.includes(searchTerm);
+        // Pembimbing: Search disabled for names (blind review)
+        // const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        //     student.nosis.includes(searchTerm);
+        const matchesSearch = true; // Blind mode: no search by name
+
 
         if (!matchesSearch) return false;
         if (!paper) return filterStatus === 'ALL';
@@ -138,11 +141,11 @@ const AdvisorStudentList: React.FC = () => {
                             >
                                 <div className="flex items-center gap-4 min-w-[250px]">
                                     <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-lg">
-                                        {student.name.charAt(0)}
+                                        S{index + 1}
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-slate-800">{student.name}</h3>
-                                        <p className="text-sm text-slate-500 font-mono">{student.nosis}</p>
+                                        <h3 className="font-bold text-slate-800">Siswa {index + 1}</h3>
+                                        <p className="text-sm text-slate-500 font-mono">***</p>
                                     </div>
                                 </div>
 

@@ -148,10 +148,10 @@ const AdvisorDashboard: React.FC = () => {
                                 <div key={index} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
                                     <div className="flex items-center gap-4">
                                         <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 font-bold">
-                                            {student.name.charAt(0)}
+                                            S{index + 1}
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-slate-800">{student.name}</h4>
+                                            <h4 className="font-bold text-slate-800">Siswa {index + 1}</h4>
                                             <p className="text-sm text-slate-500">{paper.title || 'Judul belum diset'}</p>
                                             <div className="mt-1 inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700">
                                                 <Clock size={10} />

@@ -82,7 +82,7 @@ const AdvisorFinalReview: React.FC = () => {
                         </button>
                         <div>
                             <h1 className="text-lg font-bold text-slate-800 leading-tight">Review Dokumen Final</h1>
-                            <p className="text-xs text-slate-500 font-medium">{paper.User?.name} • {paper.User?.nosis}</p>
+                            <p className="text-xs text-slate-500 font-medium">Siswa (Blind Review) • ***</p>
                         </div>
                     </div>
 
@@ -252,7 +252,7 @@ const AdvisorFinalReview: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Student Info Compact */}
+                        {/* Student Info Compact - Anonymized for Blind Review */}
                         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
                             <h4 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
                                 <User size={16} className="text-slate-400" /> Informasi Siswa
@@ -260,11 +260,11 @@ const AdvisorFinalReview: React.FC = () => {
                             <div className="space-y-3 text-sm">
                                 <div className="flex justify-between border-b border-slate-50 pb-2">
                                     <span className="text-slate-500">Nama</span>
-                                    <span className="font-medium text-slate-800 text-right">{paper.User?.name}</span>
+                                    <span className="font-medium text-slate-800 text-right">Siswa (Blind Review)</span>
                                 </div>
                                 <div className="flex justify-between border-b border-slate-50 pb-2">
                                     <span className="text-slate-500">NOSIS/NRP</span>
-                                    <span className="font-medium text-slate-800 text-right">{paper.User?.nosis}</span>
+                                    <span className="font-medium text-slate-800 text-right">***</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-slate-500">Judul Karya</span>
@@ -272,6 +272,13 @@ const AdvisorFinalReview: React.FC = () => {
                                         {paper.title}
                                     </span>
                                 </div>
+                            </div>
+
+                            {/* Workflow Info */}
+                            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                                <p className="text-xs text-amber-700">
+                                    <strong>Info:</strong> Persetujuan dokumen final kini ditangani oleh SuperAdmin melalui Verifikasi Integritas.
+                                </p>
                             </div>
                         </div>
                     </div>
