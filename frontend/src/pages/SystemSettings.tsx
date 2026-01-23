@@ -422,6 +422,7 @@ const InputGroup = ({ label, desc, value, onChange, suffix, color }: any) => {
     blue: 'focus:ring-blue-100',
     orange: 'focus:ring-orange-100',
     red: 'focus:ring-red-100',
+    green: 'focus:ring-green-100',
   };
 
   return (
