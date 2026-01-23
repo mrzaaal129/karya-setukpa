@@ -75,35 +75,51 @@ export class ConsistencyService {
     }
 
     /**
-     * Calculates what percentage of text1 is contained within text2.
-     * Splits text1 into chunks and checks if they exist in text2.
+     * Calculates Containment Score using Shingling (N-grams).
+     * Robust against minor formatting differences.
      */
     calculateContainmentScore(source: string, target: string): number {
         if (!source || !target) return 0;
 
-        // Split source by sentences or chunks ~50 chars
-        // Using period as simple sentence delimiter, then filter empty
-        const chunks = source.split('.')
-            .map(s => s.trim())
-            .filter(s => s.length > 20); // Ignore very short fragments
+        // 1. Aggressive Normalization (alpha-numeric only)
+        const cleanSource = this.aggressiveNormalize(source);
+        const cleanTarget = this.aggressiveNormalize(target);
 
-        if (chunks.length === 0) return 0;
+        // 2. Generate N-grams (Shingles) from Source
+        const N = 10; // 10-word sequences
+        const sourceWords = cleanSource.split(' ').filter(w => w.length > 0);
 
-        let matchedChunks = 0;
-        for (const chunk of chunks) {
-            if (target.includes(chunk)) {
-                matchedChunks++;
-            } else {
-                // Try fuzzy match for the chunk (tolerant to spacing issues)
-                // If chunk is found with >80% similarity anywhere in target? 
-                // That's expensive. Let's stick to simple inclusion first, 
-                // but maybe strip spaces for check?
-                // normalized text is already space-normalized.
+        if (sourceWords.length < N) {
+            // Text too short for N-grams, fall back to simple inclusion
+            return cleanTarget.includes(cleanSource) ? 100 : 0;
+        }
+
+        const sourceShingles = new Set<string>();
+        for (let i = 0; i <= sourceWords.length - N; i++) {
+            const shingle = sourceWords.slice(i, i + N).join(' ');
+            sourceShingles.add(shingle);
+        }
+
+        if (sourceShingles.size === 0) return 0;
+
+        // 3. Check overlaps
+        let matchCount = 0;
+        for (const shingle of sourceShingles) {
+            if (cleanTarget.includes(shingle)) {
+                matchCount++;
             }
         }
 
-        const score = (matchedChunks / chunks.length) * 100;
+        const score = (matchCount / sourceShingles.size) * 100;
         return parseFloat(score.toFixed(2));
+    }
+
+    aggressiveNormalize(text: string): string {
+        return text
+            .toLowerCase()
+            .replace(/[^a-z0-9\s]/g, '') // Remove punctuation/symbols
+            .replace(/\s+/g, ' ')
+            .trim();
     }
 
     /**
