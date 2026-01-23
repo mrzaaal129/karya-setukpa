@@ -133,12 +133,23 @@ export const getPaperById = async (req: AuthRequest, res: Response): Promise<voi
                 // 3. Append missing chapters
                 // We use Title/ID matching. If Master has a chapter that current doesn't, add it.
                 masterStructure.forEach((masterChapter) => {
-                    const exists = currentStructure.find((c: any) =>
+                    const existingChapterIndex = currentStructure.findIndex((c: any) =>
                         c.title === masterChapter.title ||
                         (c.id && c.id === masterChapter.id)
                     );
 
-                    if (!exists) {
+                    if (existingChapterIndex !== -1) {
+                        // Chapter exists: Sync properties like minWords
+                        const existingChapter = currentStructure[existingChapterIndex];
+                        if (masterChapter.minWords !== undefined && existingChapter.minWords !== masterChapter.minWords) {
+                            console.log(`Sync: Updating minWords for chapter "${existingChapter.title}" from ${existingChapter.minWords} to ${masterChapter.minWords}`);
+                            currentStructure[existingChapterIndex] = {
+                                ...existingChapter,
+                                minWords: masterChapter.minWords
+                            };
+                            hasChanges = true;
+                        }
+                    } else {
                         // New Chapter Found! Append it.
                         console.log(`Sync: Adding new chapter "${masterChapter.title}" to Paper ${paper!.id}`);
                         currentStructure.push({
