@@ -53,10 +53,10 @@ const Header: React.FC<HeaderProps> = ({ onOpenMobileSidebar }) => {
       </div>
 
       <div className="flex items-center space-x-3 md:space-x-4">
-        {/* Mobile Logout Button (Optional: Keep it for quick access) */}
+        {/* Logout Button (Visible on all devices for easier access) */}
         <button
           onClick={handleLogout}
-          className="md:hidden p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+          className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
           title="Keluar / Logout"
         >
           <LogoutIcon className="w-6 h-6" />
