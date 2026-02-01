@@ -6,6 +6,14 @@ type IconProps = {
 
 // Solar Icon Set (Outline/Linear Style for clean look)
 
+export const MenuIcon: React.FC<IconProps> = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 6H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M4 12H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M4 18H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 export const HomeIcon: React.FC<IconProps> = ({ className }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M16.8687 19.8795C16.4887 19.8795 16.1787 19.5695 16.1787 19.1895V15.3095C16.1787 14.9295 15.8687 14.6195 15.4887 14.6195H8.50873C8.12873 14.6195 7.81873 14.9295 7.81873 15.3095V19.1895C7.81873 19.5695 7.50873 19.8795 7.12873 19.8795H5.05873C3.91873 19.8795 2.99873 18.9595 2.99873 17.8195V9.40952C2.99873 8.73952 3.32873 8.10952 3.87873 7.70952L9.11873 3.87952C10.7887 2.65952 13.2087 2.65952 14.8787 3.87952L20.1187 7.70952C20.6687 8.10952 20.9987 8.73952 20.9987 9.40952V17.8195C20.9987 18.9595 20.0787 19.8795 18.9387 19.8795H16.8687Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />

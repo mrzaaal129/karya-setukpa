@@ -4,11 +4,25 @@ import { useUser } from '../contexts/UserContext';
 import { UserRole } from '../types';
 import ProfileSettingsModal from './ProfileSettingsModal';
 import { getInitials, getAvatarColor, getPhotoUrl } from '../utils/avatar';
+import { LogoutIcon, MenuIcon } from './icons';
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  onOpenMobileSidebar?: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ onOpenMobileSidebar }) => {
   const { currentUser } = useUser();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
+
+  // Logout handler
+  const handleLogout = () => {
+    if (window.confirm('Apakah Anda yakin ingin keluar?')) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/#/login';
+    }
+  };
 
   const titleMap: Record<UserRole, string> = {
     [UserRole.Siswa]: 'Dashboard Siswa',
@@ -25,11 +39,29 @@ const Header: React.FC = () => {
 
   return (
     <header className="flex items-center justify-between h-20 px-6 bg-white border-b border-gray-200">
-      <div className="flex items-center">
-        <h2 className="text-xl font-semibold text-gray-800">{titleMap[currentUser.role]}</h2>
+      <div className="flex items-center gap-3 md:gap-2">
+        {/* Mobile Menu Button */}
+        <button
+          className="md:hidden p-2 -ml-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+          onClick={onOpenMobileSidebar}
+          aria-label="Open Menu"
+        >
+          <MenuIcon className="w-6 h-6" />
+        </button>
+
+        <h2 className="text-xl font-semibold text-gray-800 truncate max-w-[200px] md:max-w-none">{titleMap[currentUser.role]}</h2>
       </div>
 
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-3 md:space-x-4">
+        {/* Mobile Logout Button (Optional: Keep it for quick access) */}
+        <button
+          onClick={handleLogout}
+          className="md:hidden p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+          title="Keluar / Logout"
+        >
+          <LogoutIcon className="w-6 h-6" />
+        </button>
+
         <NotificationDropdown />
 
         <div

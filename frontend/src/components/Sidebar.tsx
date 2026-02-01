@@ -4,21 +4,34 @@ import { NavLink } from 'react-router-dom';
 import {
     HomeIcon, DocumentTextIcon, ChartBarIcon, LogoutIcon, UserGroupIcon,
     CogIcon, ShieldExclamationIcon, AcademicCapIcon, ClipboardCheckIcon,
-    PlusCircleIcon, TemplateIcon, ChevronLeftIcon, ChevronRightIcon
+    PlusCircleIcon, TemplateIcon, ChevronLeftIcon, ChevronRightIcon, XIcon
 } from './icons';
 import { useUser } from '../contexts/UserContext';
 import { UserRole } from '../types';
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+    isMobileOpen?: boolean;
+    onCloseMobile?: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen = false, onCloseMobile }) => {
     const { currentUser } = useUser();
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     const toggleSidebar = () => setIsCollapsed(!isCollapsed);
 
+    // Mobile close handler helper
+    const handleMobileLinkClick = () => {
+        if (onCloseMobile) {
+            onCloseMobile();
+        }
+    };
+
     const NavItem = ({ to, icon: Icon, label, end = false }: { to: string, icon: any, label: string, end?: boolean }) => (
         <NavLink
             to={to}
             end={end}
+            onClick={handleMobileLinkClick} // Close sidebar on click (mobile)
             className={({ isActive }) =>
                 `flex items-center px-3 py-3 mb-1.5 transition-all duration-300 rounded-xl group relative overflow-hidden ${isActive
                     ? 'bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/30'
@@ -124,14 +137,19 @@ const Sidebar: React.FC = () => {
 
     return (
         <div
-            className={`${isCollapsed ? 'w-24' : 'w-72'
-                } hidden md:flex flex-col bg-white text-gray-600 transition-all duration-300 ease-in-out relative shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-50 border-r border-gray-100`}
+            className={`
+                fixed inset-y-0 left-0 z-50 bg-white border-r border-gray-100 transition-transform duration-300 ease-in-out
+                ${isMobileOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full shadow-none'}
+                md:translate-x-0 md:static md:flex md:flex-col md:shadow-[4px_0_24px_rgba(0,0,0,0.02)]
+                ${isCollapsed ? 'md:w-24' : 'md:w-72'}
+                w-64 flex flex-col
+            `}
         >
             {/* Header / Logo */}
-            <div className="flex items-center justify-center h-24 relative z-20">
-                <div className={`flex items-center gap-3 transition-all duration-300 ${isCollapsed ? 'justify-center' : 'px-6 w-full'}`}>
+            <div className="flex items-center justify-between md:justify-center h-24 relative z-20 px-4 md:px-0">
+                <div className={`flex items-center gap-3 transition-all duration-300 ${isCollapsed ? 'md:justify-center' : 'md:px-6 md:w-full'}`}>
                     {/* Logo Icon */}
-                    <div className="relative flex-shrink-0 w-12 h-12 flex items-center justify-center">
+                    <div className="relative flex-shrink-0 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center">
                         <img
                             src="/logo_setukpa.png"
                             alt="Logo Setukpa"
@@ -140,19 +158,27 @@ const Sidebar: React.FC = () => {
                     </div>
 
                     {/* Logo Text */}
-                    <div className={`flex flex-col transition-all duration-300 overflow-hidden ${isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}>
-                        <span className="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 tracking-tight leading-none font-sans">SETUKPA</span>
-                        <span className="text-[10px] font-bold text-gray-400 tracking-[0.2em] uppercase leading-none mt-1.5">Digital System</span>
+                    <div className={`flex flex-col transition-all duration-300 overflow-hidden ${isCollapsed ? 'md:w-0 md:opacity-0' : 'w-auto opacity-100'}`}>
+                        <span className="text-lg md:text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 tracking-tight leading-none font-sans">SETUKPA</span>
+                        <span className="text-[9px] md:text-[10px] font-bold text-gray-400 tracking-[0.2em] uppercase leading-none mt-1.5">Digital System</span>
                     </div>
                 </div>
+
+                {/* Mobile Close Button */}
+                <button
+                    onClick={onCloseMobile}
+                    className="md:hidden p-1 text-gray-400 hover:text-gray-600"
+                >
+                    <XIcon className="w-6 h-6" />
+                </button>
             </div>
 
             {/* Toggle Button */}
-            {/* Toggle Button */}
+            {/* Toggle Button (Desktop Only) */}
             <button
                 onClick={toggleSidebar}
                 aria-label={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-                className="absolute -right-3 top-28 bg-white text-gray-400 hover:text-blue-600 p-1.5 rounded-full shadow-md hover:shadow-lg transition-all duration-200 z-50 border border-gray-100 group"
+                className="hidden md:flex absolute -right-3 top-28 bg-white text-gray-400 hover:text-blue-600 p-1.5 rounded-full shadow-md hover:shadow-lg transition-all duration-200 z-50 border border-gray-100 group"
             >
                 {isCollapsed ?
                     <ChevronRightIcon className="w-4 h-4 group-hover:scale-110 transition-transform" /> :
