@@ -165,12 +165,15 @@ app.use(errorHandler);
 // ============================================
 // Server Startup
 // ============================================
-const PORT = config.port;
-const server = app.listen(PORT, async () => {
-    logger.info(`🚀 SETUKPA Backend API running on port ${PORT}`);
+// Log startup
+logger.info(`🚀 Starting Setukpa Backend in ${process.env.NODE_ENV} mode...`);
+
+// Start Server
+const server = app.listen(config.port, '0.0.0.0', async () => {
+    logger.info(`🚀 Server running on port ${config.port}`);
     logger.info(`📝 Environment: ${config.nodeEnv}`);
     logger.info(`🌐 CORS enabled for: ${config.cors.origin}`);
-    logger.info(`📡 API Base URL: http://localhost:${PORT}/api`);
+    logger.info(`📡 API Base URL: http://localhost:${config.port}/api`);
     logger.info(`🛡️  Security: Helmet enabled, Rate limiting active`);
 
     // Initialize Redis (optional - works without it)
