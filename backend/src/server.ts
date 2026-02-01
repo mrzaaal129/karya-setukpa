@@ -8,6 +8,7 @@ import { requestIdMiddleware } from './middleware/requestId.js';
 import logger from './utils/logger.js';
 import { initRedis, closeRedis } from './config/redis.js';
 import path from 'path';
+import { initScheduler } from './services/schedulerService.js';
 
 // Import routes
 import authRoutes from './routes/authRoutes.js';
@@ -179,6 +180,9 @@ const server = app.listen(PORT, async () => {
     } else {
         logger.warn(`💾 Redis: Not available, caching disabled`);
     }
+
+    // Initialize Scheduler (Cron Jobs)
+    initScheduler();
 });
 
 // ============================================

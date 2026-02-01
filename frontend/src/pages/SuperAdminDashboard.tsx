@@ -270,7 +270,7 @@ const SuperAdminDashboard: React.FC = () => {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex-1">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="font-bold text-slate-800">Informasi Sistem</h3>
-                <div className="px-2 py-1 rounded-lg bg-gray-100 text-xs font-mono text-gray-500">v2.4.0</div>
+                <div className="px-2 py-1 rounded-lg bg-gray-100 text-xs font-mono text-gray-500">v1.0.0</div>
               </div>
               <div className="space-y-4">
                 <div className="p-4 rounded-xl bg-blue-50 border border-blue-100">

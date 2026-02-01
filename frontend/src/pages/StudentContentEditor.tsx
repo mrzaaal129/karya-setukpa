@@ -61,6 +61,21 @@ const StudentContentEditor: React.FC = () => {
     const [showTitleModal, setShowTitleModal] = useState(false);
     const [newTitle, setNewTitle] = useState('');
     const [isTitleSaving, setIsTitleSaving] = useState(false);
+    const [isExiting, setIsExiting] = useState(false); // Flag to prevent violation on exit
+
+    const handleFinish = async () => {
+        if (!confirm('Apakah Anda yakin ingin selesai dan keluar? Pekerjaan Anda akan disimpan otomatis.')) {
+            return;
+        }
+
+        setIsExiting(true); // Disable violation tracking immediately
+
+        // 1. Force Save
+        await handleSave();
+
+        // 2. Navigate away (Violation listeners checked isExiting, so they won't fire)
+        navigate('/dashboard');
+    };
 
     useEffect(() => {
         fetchViolations();
@@ -171,7 +186,8 @@ const StudentContentEditor: React.FC = () => {
         // 1. Violation locked? Don't track more.
         // 2. Chapters empty? Don't track.
         // 3. FEATURE SWITCH: enableViolationDetection must be TRUE.
-        if (isViolationLocked || chapters.length === 0 || !enableViolationDetection) return;
+        // 4. Exiting? Don't track.
+        if (isViolationLocked || chapters.length === 0 || !enableViolationDetection || isExiting) return;
 
         console.log("🛡️ Violation Detection ACTIVE for Chapter:", activeChapterIndex);
 
@@ -205,10 +221,9 @@ const StudentContentEditor: React.FC = () => {
         return () => {
             console.log("🛡️ Removing Violation Listeners");
             document.removeEventListener("visibilitychange", handleVisibilityChange);
-            window.removeEventListener("blur", handleBlur);
             window.removeEventListener("beforeunload", handleBeforeUnload);
         };
-    }, [isViolationLocked, activeChapterIndex, chapters.length, handleViolation, enableViolationDetection]);
+    }, [isViolationLocked, activeChapterIndex, chapters.length, handleViolation, enableViolationDetection, isExiting]);
 
 
     // Dynamic Copy/Paste Protection Effect
@@ -828,6 +843,16 @@ const StudentContentEditor: React.FC = () => {
                                 title="Download PDF"
                             >
                                 <Download size={20} />
+                            </button>
+
+                            {/* Finish Button */}
+                            <button
+                                onClick={handleFinish}
+                                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition shadow-sm font-medium"
+                                title="Simpan & Keluar Tanpa Pelanggaran"
+                            >
+                                <CheckCircle size={18} />
+                                Selesai
                             </button>
 
                             {chapters.length > 0 && chapters.every(ch => ch.status === 'APPROVED') && (
