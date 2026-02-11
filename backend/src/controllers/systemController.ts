@@ -8,16 +8,11 @@ const SETTINGS_KEY = 'global_settings';
 
 // Helper to get or create settings
 const getOrCreateSettings = async () => {
-    let settings = await prisma.systemSetting.findUnique({
-        where: { key: SETTINGS_KEY }
+    return await prisma.systemSetting.upsert({
+        where: { key: SETTINGS_KEY },
+        update: {},
+        create: { key: SETTINGS_KEY }
     });
-
-    if (!settings) {
-        settings = await prisma.systemSetting.create({
-            data: { key: SETTINGS_KEY }
-        });
-    }
-    return settings;
 };
 
 export const getSystemSettings = async (req: AuthRequest, res: Response): Promise<void> => {

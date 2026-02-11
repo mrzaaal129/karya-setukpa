@@ -114,6 +114,15 @@ export const deleteBatch = async (req: Request, res: Response) => {
             });
         }
 
+        // Check if batch exists
+        const existingBatch = await prisma.batch.findUnique({
+            where: { id }
+        });
+
+        if (!existingBatch) {
+            return res.status(404).json({ error: 'Batch not found' });
+        }
+
         await prisma.batch.delete({
             where: { id }
         });

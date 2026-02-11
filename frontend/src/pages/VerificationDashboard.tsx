@@ -52,12 +52,13 @@ const VerificationDashboard: React.FC = () => {
         }
     };
 
-    const handleVerify = async (id: string, status: 'VERIFIED' | 'REJECTED') => {
-        if (!confirm(`Apakah Anda yakin ingin ${status === 'VERIFIED' ? 'MENYETUJUI' : 'MENOLAK'} naskah ini?`)) return;
+    const handleVerify = async (id: string, status: 'VERIFIED' | 'REJECTED' | 'PENDING_VERIFICATION') => {
+        const actionLabel = status === 'VERIFIED' ? 'MENYETUJUI' : status === 'REJECTED' ? 'MENOLAK' : 'MEMBATALKAN';
+        if (!confirm(`Apakah Anda yakin ingin ${actionLabel} status naskah ini?`)) return;
 
         try {
             await paperService.verifyPaper(id, status);
-            toast.success(`Naskah berhasil ${status === 'VERIFIED' ? 'diverifikasi' : 'ditolak'}`);
+            toast.success(`Naskah berhasil ${status === 'VERIFIED' ? 'diverifikasi' : status === 'REJECTED' ? 'ditolak' : 'direset'}`);
             fetchPapers(); // Refresh list
         } catch (error) {
             console.error(error);
@@ -175,18 +176,46 @@ const VerificationDashboard: React.FC = () => {
                                     </td>
                                     <td className="p-4 border-b text-center">
                                         <div className="flex justify-center gap-2">
-                                            <button
-                                                onClick={() => handleVerify(paper.id, 'VERIFIED')}
-                                                className="flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 text-sm font-medium transition-colors"
-                                            >
-                                                <CheckCircle size={16} /> ACC
-                                            </button>
-                                            <button
-                                                onClick={() => handleVerify(paper.id, 'REJECTED')}
-                                                className="flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm font-medium transition-colors"
-                                            >
-                                                <XCircle size={16} /> Tolak
-                                            </button>
+                                            {paper.consistencyStatus === 'VERIFIED' ? (
+                                                <div className="flex items-center gap-2">
+                                                    <span className="flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold ring-1 ring-green-200">
+                                                        <CheckCircle size={14} /> TERVERIFIKASI
+                                                    </span>
+                                                    <button
+                                                        onClick={() => handleVerify(paper.id, 'PENDING_VERIFICATION')}
+                                                        className="text-xs text-slate-400 hover:text-slate-600 hover:underline"
+                                                    >
+                                                        Batalkan
+                                                    </button>
+                                                </div>
+                                            ) : paper.consistencyStatus === 'REJECTED' ? (
+                                                <div className="flex items-center gap-2">
+                                                    <span className="flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold ring-1 ring-red-200">
+                                                        <XCircle size={14} /> DITOLAK
+                                                    </span>
+                                                    <button
+                                                        onClick={() => handleVerify(paper.id, 'PENDING_VERIFICATION')}
+                                                        className="text-xs text-slate-400 hover:text-slate-600 hover:underline"
+                                                    >
+                                                        Reset
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleVerify(paper.id, 'VERIFIED')}
+                                                        className="flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 text-sm font-medium transition-colors"
+                                                    >
+                                                        <CheckCircle size={16} /> ACC
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleVerify(paper.id, 'REJECTED')}
+                                                        className="flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm font-medium transition-colors"
+                                                    >
+                                                        <XCircle size={16} /> Tolak
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>

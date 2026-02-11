@@ -12,6 +12,7 @@ const ExaminerGrading: React.FC = () => {
     const [grade, setGrade] = useState<number | ''>('');
     const [feedback, setFeedback] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    const [showRubric, setShowRubric] = useState(false);
 
     useEffect(() => {
         fetchPaper();
@@ -21,12 +22,12 @@ const ExaminerGrading: React.FC = () => {
         try {
             setLoading(true);
             const response = await api.get(`/papers/${id}`);
-            // Handle wrapped response
             const paperData = response.data.paper || response.data;
             setPaper(paperData);
 
             if (paperData.grade !== null) {
                 setGrade(paperData.grade);
+                setFeedback(paperData.feedback || ''); // Assuming feedback is part of the response now or locally stored
             }
         } catch (error) {
             console.error('Error fetching paper:', error);
@@ -60,125 +61,173 @@ const ExaminerGrading: React.FC = () => {
         }
     };
 
-    if (loading) return <div>Loading...</div>;
-    if (!paper) return <div>Paper tidak ditemukan</div>;
+    if (loading) return (
+        <div className="flex h-screen items-center justify-center bg-slate-50">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        </div>
+    );
+
+    if (!paper) return <div className="p-8 text-center text-slate-500">Paper tidak ditemukan</div>;
+
+    const fileUrl = paper.finalFileUrl?.startsWith('http')
+        ? paper.finalFileUrl
+        : `${API_URL.replace('/api', '')}${paper.finalFileUrl}`;
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
-            <div className="max-w-4xl mx-auto">
-                <button
-                    onClick={() => navigate('/super-admin/examiner-assignment')}
-                    className="flex items-center text-gray-600 hover:text-gray-900 mb-6 transition"
-                >
-                    <ArrowLeft size={20} className="mr-2" />
-                    Kembali ke Daftar Ujian
-                </button>
+        <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
+            {/* Top Bar */}
+            <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => navigate('/examiner/dashboard')}
+                        className="p-2 hover:bg-slate-100 rounded-full text-slate-500 hover:text-slate-800 transition-all"
+                        title="Kembali"
+                    >
+                        <ArrowLeft size={20} />
+                    </button>
+                    <div>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
+                            <span className="font-bold text-slate-700 uppercase tracking-wide">{paper.User?.name}</span>
+                            <span className="bg-slate-100 px-2 py-0.5 rounded text-slate-600 font-medium text-[10px]">NOSIS: {paper.User?.nosis || '-'}</span>
+                        </div>
+                        <h1 className="font-bold text-slate-900 text-lg leading-snug line-clamp-2" title={paper.title}>
+                            {paper.title}
+                        </h1>
+                    </div>
+                </div>
+                <div className="flex items-center gap-3">
+                    {paper.finalFileUrl && (
+                        <a
+                            href={fileUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-indigo-600 rounded-lg text-sm font-medium transition-all"
+                        >
+                            <Download size={16} />
+                            <span className="hidden sm:inline">Download PDF</span>
+                        </a>
+                    )}
+                </div>
+            </div>
 
-                <div className="bg-white rounded-lg shadow-sm p-8">
-                    <h1 className="text-2xl font-bold text-gray-800 mb-2">Penilaian Ujian</h1>
-                    <p className="text-gray-600 mb-6">
-                        Siswa: <span className="font-semibold">{paper.User?.name}</span> | Judul: <span className="italic">{paper.title}</span>
-                    </p>
-
-                    <div className="mb-8">
-                        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                            <FileText size={20} /> Dokumen Final
-                        </h3>
-
-                        {paper.finalFileUrl ? (
-                            <div className="space-y-6">
-                                <div className="flex items-center justify-between p-4 border border-blue-200 bg-blue-50 rounded-lg">
-                                    <div className="flex items-center gap-3">
-                                        <FileText size={32} className="text-blue-600" />
-                                        <div>
-                                            <p className="font-bold text-blue-900">{paper.finalFileName}</p>
-                                            <p className="text-xs text-blue-700">Size: {(paper.finalFileSize / 1024 / 1024).toFixed(2)} MB</p>
-                                        </div>
-                                    </div>
+            {/* Split View Content */}
+            <div className="flex-1 flex flex-col lg:flex-row overflow-hidden h-[calc(100vh-73px)]">
+                {/* Left Panel: Document Preview */}
+                <div className="flex-1 bg-slate-100 p-4 lg:p-6 overflow-y-auto border-r border-slate-200 scrollbar-thin scrollbar-thumb-slate-300">
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden h-full min-h-[600px] flex flex-col">
+                        {paper.finalFileUrl && paper.finalFileName?.toLowerCase().endsWith('.pdf') ? (
+                            <iframe
+                                src={fileUrl}
+                                className="w-full flex-1"
+                                title="PDF Preview"
+                            />
+                        ) : (
+                            <div className="flex-1 flex flex-col items-center justify-center text-slate-400 p-12 text-center">
+                                <FileText size={64} className="mb-4 opacity-50" />
+                                <h3 className="text-lg font-bold text-slate-600 mb-2">Preview Tidak Tersedia</h3>
+                                <p className="text-sm max-w-xs mx-auto mb-6">
+                                    Format file ini tidak mendukung pratinjau langsung. Silakan unduh dokumen untuk memeriksa isinya.
+                                </p>
+                                {paper.finalFileUrl && (
                                     <a
-                                        href={`${API_URL.replace('/api', '')}${paper.finalFileUrl}`}
+                                        href={fileUrl}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-300 text-blue-700 hover:bg-blue-100 rounded-lg transition"
+                                        className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
                                     >
-                                        <Download size={18} /> Download
+                                        Download Makalah
                                     </a>
-                                </div>
-
-                                {/* PDF Preview */}
-                                {paper.finalFileName?.toLowerCase().endsWith('.pdf') ? (
-                                    <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-100">
-                                        <div className="p-3 bg-gray-200 text-sm font-semibold text-gray-700 flex justify-between items-center">
-                                            <span>Pratinjau Dokumen</span>
-                                            <a
-                                                href={`${API_URL.replace('/api', '')}${paper.finalFileUrl}`}
-                                                target="_blank"
-                                                className="text-blue-600 hover:underline text-xs"
-                                            >
-                                                Buka di Tab Baru ↗
-                                            </a>
-                                        </div>
-                                        <iframe
-                                            src={`${API_URL.replace('/api', '')}${paper.finalFileUrl}`}
-                                            className="w-full h-[800px] bg-white"
-                                            title="PDF Preview"
-                                        />
-                                    </div>
-                                ) : (
-                                    <div className="p-6 bg-gray-50 border border-gray-200 border-dashed rounded-lg text-center text-gray-500 italic">
-                                        Preview tidak tersedia untuk format file ini. Silakan download untuk membaca.
-                                    </div>
                                 )}
-                            </div>
-                        ) : (
-                            <div className="p-4 bg-red-50 text-red-700 rounded-lg border border-red-200">
-                                Dokumen final belum tersedia. Penilaian tidak dapat dilakukan.
                             </div>
                         )}
                     </div>
+                </div>
 
-                    {paper.finalFileUrl && (
-                        <div className="border-t border-gray-200 pt-6">
-                            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                                <Star size={20} /> Input Nilai
-                            </h3>
+                {/* Right Panel: Grading Form */}
+                <div className="w-full lg:w-[400px] xl:w-[450px] bg-white flex flex-col shadow-xl z-20">
+                    <div className="p-6 flex-1 overflow-y-auto">
+                        <div className="mb-6">
+                            <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-1">
+                                <Star className="text-amber-500" size={20} fill="currentColor" />
+                                Form Penilaian
+                            </h2>
+                            <p className="text-xs text-slate-500">
+                                Berikan penilaian objektif berdasarkan kualitas karya tulis ilmiah siswa.
+                            </p>
+                        </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Skor Akhir (0-100)</label>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        max="100"
-                                        value={grade}
-                                        onChange={(e) => setGrade(e.target.value === '' ? '' : Number(e.target.value))}
-                                        className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-lg font-bold text-blue-900"
-                                        placeholder="85"
-                                    />
-                                </div>
+                        {/* Grading Card */}
+                        <div className="bg-slate-50 rounded-xl p-5 border border-slate-200 mb-6">
+                            <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">
+                                Skor Akhir (0-100)
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    value={grade}
+                                    onChange={(e) => setGrade(e.target.value === '' ? '' : Number(e.target.value))}
+                                    className="w-full pl-6 pr-4 py-4 text-3xl font-bold text-indigo-700 bg-white border border-slate-300 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-center"
+                                    placeholder="0"
+                                />
+                                <span className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 font-medium">/100</span>
                             </div>
+                            {grade !== '' && (Number(grade) >= 70 ? (
+                                <div className="mt-2 text-xs font-bold text-emerald-600 text-center bg-emerald-100 py-1 rounded">LULUS</div>
+                            ) : (
+                                <div className="mt-2 text-xs font-bold text-rose-600 text-center bg-rose-100 py-1 rounded">BELUM LULUS</div>
+                            ))}
+                        </div>
 
-                            <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Catatan Penilaian (Opsional)</label>
-                                <textarea
-                                    value={feedback}
-                                    onChange={(e) => setFeedback(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 h-24 text-sm"
-                                    placeholder="Berikan masukan..."
-                                ></textarea>
-                            </div>
-
-                            <div className="flex justify-end">
+                        {/* Feedback Section */}
+                        <div className="mb-6">
+                            <div className="flex justify-between items-center mb-2">
+                                <label className="block text-sm font-bold text-slate-700">Catatan & Masukan</label>
                                 <button
-                                    onClick={handleSubmit}
-                                    disabled={submitting}
-                                    className="flex items-center gap-2 px-8 py-3 bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition disabled:opacity-50 shadow-md font-bold"
+                                    onClick={() => setShowRubric(!showRubric)}
+                                    className="text-xs text-indigo-600 hover:text-indigo-800 font-medium underline"
                                 >
-                                    <Save size={18} /> Simpan Nilai
+                                    {showRubric ? 'Sembunyikan Rubrik' : 'Lihat Rubrik'}
                                 </button>
                             </div>
+
+                            {showRubric && (
+                                <div className="mb-4 bg-yellow-50 p-3 rounded-lg border border-yellow-200 text-xs text-slate-700 space-y-2 animate-in fade-in slide-in-from-top-2">
+                                    <p><strong>1. Metodologi (30%)</strong>: Kejelasan metode dan relevansi data.</p>
+                                    <p><strong>2. Analisis (40%)</strong>: Kedalaman pembahasan dan ketajaman argumen.</p>
+                                    <p><strong>3. Sistematika (30%)</strong>: Tata bahasa, format, dan referensi.</p>
+                                </div>
+                            )}
+
+                            <textarea
+                                value={feedback}
+                                onChange={(e) => setFeedback(e.target.value)}
+                                className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-400 text-sm leading-relaxed"
+                                rows={8}
+                                placeholder="Tuliskan catatan detail untuk siswa mengenai kelebihan dan kekurangan karya tulis ini..."
+                            ></textarea>
+                            <p className="text-xs text-slate-400 mt-2 text-right">
+                                *Catatan ini akan dapat dilihat oleh siswa
+                            </p>
                         </div>
-                    )}
+                    </div>
+
+                    {/* Bottom Action Bar */}
+                    <div className="p-6 bg-white border-t border-slate-100">
+                        <button
+                            onClick={handleSubmit}
+                            disabled={submitting}
+                            className="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl shadow-lg shadow-slate-900/10 hover:shadow-xl hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex justify-center items-center gap-2"
+                        >
+                            {submitting ? (
+                                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                            ) : (
+                                <Save size={20} />
+                            )}
+                            {submitting ? 'Menyimpan...' : 'Simpan Penilaian'}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

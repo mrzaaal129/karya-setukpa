@@ -114,7 +114,7 @@ const AdvisorFinalReview: React.FC = () => {
                                     </div>
                                     <div className="flex gap-2">
                                         <a
-                                            href={`${API_URL.replace('/api', '')}${paper.finalFileUrl}`}
+                                            href={paper.finalFileUrl?.startsWith('http') ? paper.finalFileUrl : `${API_URL.replace('/api', '')}${paper.finalFileUrl}`}
                                             target="_blank"
                                             rel="noreferrer"
                                             className="p-2 hover:bg-white hover:shadow-md rounded-lg transition text-slate-600 border border-transparent hover:border-slate-200"
@@ -127,7 +127,7 @@ const AdvisorFinalReview: React.FC = () => {
                                 <div className="flex-1 bg-slate-200 overflow-hidden relative">
                                     {paper.finalFileName?.toLowerCase().endsWith('.pdf') ? (
                                         <iframe
-                                            src={`${API_URL.replace('/api', '')}${paper.finalFileUrl}`}
+                                            src={paper.finalFileUrl?.startsWith('http') ? paper.finalFileUrl : `${API_URL.replace('/api', '')}${paper.finalFileUrl}`}
                                             className="w-full h-full"
                                             title="PDF Preview"
                                         />
@@ -136,7 +136,7 @@ const AdvisorFinalReview: React.FC = () => {
                                             <FileText size={48} className="opacity-20" />
                                             <p>Preview tidak tersedia untuk format ini</p>
                                             <a
-                                                href={`${API_URL.replace('/api', '')}${paper.finalFileUrl}`}
+                                                href={paper.finalFileUrl?.startsWith('http') ? paper.finalFileUrl : `${API_URL.replace('/api', '')}${paper.finalFileUrl}`}
                                                 className="text-indigo-600 hover:underline font-medium"
                                             >
                                                 Download untuk melihat

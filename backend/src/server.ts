@@ -51,11 +51,15 @@ app.use(helmet({
             scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.tailwindcss.com", "https://aistudiocdn.com"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
-            imgSrc: ["'self'", "data:", "blob:", "https:"],
+            imgSrc: ["'self'", "data:", "blob:", "https:", "http:"], // Allow http for dev
             connectSrc: ["'self'", "https://fonts.googleapis.com", "https://fonts.gstatic.com", "https://aistudiocdn.com"],
+            // Allow embedding from frontend
+            frameAncestors: ["'self'", "http://localhost:5173", "http://localhost:4173", "http://localhost:3000"],
         },
     },
     crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    xFrameOptions: false, // Allow iframes
 }));
 
 // Request ID for tracing

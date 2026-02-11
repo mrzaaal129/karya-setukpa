@@ -55,16 +55,16 @@ const ExaminerDashboard: React.FC = () => {
     // Derived Data
     const totalStudents = students.length;
 
-    // Students ready for grading: Paper exists, approved by advisor (if applicable logic), and NOT graded yet
-    const readyToGrade = students.filter(s =>
-        s.Paper[0]?.finalApprovalStatus === 'APPROVED' && !s.Paper[0]?.grade
-    );
-
     // Flatten the data to handle multiple papers per student
     const allStudentPapers = students.flatMap(student => {
         if (!student.Paper || student.Paper.length === 0) return [];
         return student.Paper.map(paper => ({ student, paper }));
     });
+
+    // Students ready for grading: Paper exists, approved by advisor, and NOT graded yet
+    const readyToGrade = allStudentPapers.filter(({ paper }) =>
+        paper.finalApprovalStatus === 'APPROVED' && !paper.grade
+    );
 
     // Papers graded
     const gradedPapers = allStudentPapers.filter(({ paper }) =>
@@ -186,8 +186,8 @@ const ExaminerDashboard: React.FC = () => {
                                     onClick={handleExport}
                                     disabled={gradedPapers.length === 0}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${gradedPapers.length > 0
-                                            ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                                            : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                        ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                                        : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                                         }`}
                                 >
                                     <Download size={16} /> Export Excel

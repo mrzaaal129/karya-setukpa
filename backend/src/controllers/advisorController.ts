@@ -99,6 +99,15 @@ export const deleteAdvisor = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
 
+        // Check if advisor exists
+        const existingAdvisor = await prisma.user.findUnique({
+            where: { id }
+        });
+
+        if (!existingAdvisor) {
+            return res.status(404).json({ error: 'Advisor not found' });
+        }
+
         // Check for dependencies
         const gradesCount = await prisma.grade.count({ where: { advisorId: id } });
         const commentsCount = await prisma.comment.count({ where: { authorId: id } });

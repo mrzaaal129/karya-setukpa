@@ -36,7 +36,7 @@ export const paperService = {
         return response.data.papers;
     },
 
-    async verifyPaper(id: string, status: 'VERIFIED' | 'REJECTED') {
+    async verifyPaper(id: string, status: 'VERIFIED' | 'REJECTED' | 'PENDING_VERIFICATION') {
         const response = await api.put(`/papers/${id}/verify`, { status });
         return response.data;
     },

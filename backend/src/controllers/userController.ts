@@ -156,6 +156,16 @@ export const deleteUser = async (req: AuthRequest, res: Response): Promise<void>
     try {
         const { id } = req.params;
 
+        // Check if user exists
+        const existingUser = await prisma.user.findUnique({
+            where: { id }
+        });
+
+        if (!existingUser) {
+            res.status(404).json({ error: 'User not found' });
+            return;
+        }
+
         await prisma.user.delete({
             where: { id },
         });

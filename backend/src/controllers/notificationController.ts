@@ -5,7 +5,11 @@ import prisma from '../config/database.js';
 // Get all notifications for current user
 export const getNotifications = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const userId = req.user!.userId;
+        if (!req.user || !req.user.userId) {
+            res.status(401).json({ error: 'Unauthorized' });
+            return;
+        }
+        const userId = req.user.userId;
         const { limit = '50', offset = '0' } = req.query;
 
         const notifications = await prisma.notification.findMany({
@@ -25,7 +29,11 @@ export const getNotifications = async (req: AuthRequest, res: Response): Promise
 // Get unread notification count
 export const getUnreadCount = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const userId = req.user!.userId;
+        if (!req.user || !req.user.userId) {
+            res.status(401).json({ error: 'Unauthorized' });
+            return;
+        }
+        const userId = req.user.userId;
 
         const count = await prisma.notification.count({
             where: {

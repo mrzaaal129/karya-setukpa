@@ -74,7 +74,7 @@ const StudentContentEditor: React.FC = () => {
         await handleSave();
 
         // 2. Navigate away (Violation listeners checked isExiting, so they won't fire)
-        navigate('/dashboard');
+        navigate('/');
     };
 
     useEffect(() => {

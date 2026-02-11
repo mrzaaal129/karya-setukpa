@@ -582,16 +582,21 @@ export const verifyPaper = async (req: AuthRequest, res: Response): Promise<void
         const { status } = req.body; // 'VERIFIED' or 'REJECTED'
         const adminId = req.user!.userId;
 
-        if (!['VERIFIED', 'REJECTED'].includes(status)) {
+        if (!['VERIFIED', 'REJECTED', 'PENDING_VERIFICATION'].includes(status)) {
             res.status(400).json({ error: 'Invalid status' });
             return;
         }
+
+        let finalApprovalStatus = undefined;
+        if (status === 'VERIFIED') finalApprovalStatus = 'APPROVED';
+        if (status === 'PENDING_VERIFICATION') finalApprovalStatus = 'PENDING';
+        if (status === 'REJECTED') finalApprovalStatus = 'REVISION'; // or REJECTED if enum supports it? Enum is PENDING, APPROVED, REVISION, SUBMITTED.
 
         const paper = await prisma.paper.update({
             where: { id },
             data: {
                 consistencyStatus: status,
-                // If Verified, examiners can see this paper for grading
+                ...(finalApprovalStatus && { finalApprovalStatus, finalApprovedBy: adminId, finalApprovedAt: new Date() })
             }
         });
 
@@ -606,7 +611,7 @@ export const getPendingVerificationPapers = async (req: AuthRequest, res: Respon
     try {
         const papers = await prisma.paper.findMany({
             where: {
-                consistencyStatus: { in: ['PENDING_VERIFICATION', 'CHECK_ERROR'] },
+                consistencyStatus: { in: ['PENDING_VERIFICATION', 'CHECK_ERROR', 'VERIFIED'] },
                 finalFileUrl: { not: null } // Ensure file exists
             },
             select: {
