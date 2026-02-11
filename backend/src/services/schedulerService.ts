@@ -30,7 +30,6 @@ export const initScheduler = () => {
             logger.error(error.message);
         }
     }, {
-        scheduled: true,
         timezone: "Asia/Jakarta" // Explicitly setting timezone to WIB
     });
 
